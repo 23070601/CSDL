@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-neutral-50 text-neutral-900 font-sans;
+  }
+}
+
+@layer components {
+  .container-main {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .card {
+    @apply bg-neutral-50 rounded-lg shadow-md p-6 border border-neutral-200;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary-600 text-white font-semibold text-btn-md hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg bg-secondary-600 text-white font-semibold text-btn-md hover:bg-secondary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-neutral-300 text-neutral-900 font-semibold text-btn-md hover:bg-neutral-100 transition-colors;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent;
+  }
+
+  .table-wrapper {
+    @apply overflow-x-auto rounded-lg border border-neutral-200;
+  }
+
+  .table {
+    @apply w-full border-collapse;
+  }
+
+  .table thead {
+    @apply bg-neutral-100;
+  }
+
+  .table th {
+    @apply px-6 py-3 text-left text-table-head-1 font-medium text-neutral-700 border-b border-neutral-200;
+  }
+
+  .table td {
+    @apply px-6 py-4 text-p4 border-b border-neutral-200;
+  }
+
+  .table tbody tr:hover {
+    @apply bg-neutral-50;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-tag-sm font-semibold;
+  }
+
+  .badge-success {
+    @apply bg-status-success-bg text-status-success;
+  }
+
+  .badge-warning {
+    @apply bg-status-warning-bg text-status-warning;
+  }
+
+  .badge-error {
+    @apply bg-status-error-bg text-status-error;
+  }
+
+  .badge-info {
+    @apply bg-status-info-bg text-status-info;
+  }
+}
