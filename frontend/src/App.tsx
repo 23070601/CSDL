@@ -18,6 +18,7 @@ import SystemConfig from '@/pages/admin/SystemConfig';
 
 // Librarian pages
 import LibrarianDashboard from '@/pages/librarian/Dashboard';
+import LibrarianProfile from '@/pages/librarian/Profile';
 import ManageCirculation from '@/pages/librarian/ManageCirculation';
 import ManageMembers from '@/pages/librarian/ManageMembers';
 import LibrarianReports from '@/pages/librarian/Reports';
@@ -91,6 +92,10 @@ function App() {
           element={<ProtectedRoute role="librarian" element={<LibrarianDashboard />} />}
         />
         <Route
+          path="/librarian/profile"
+          element={<ProtectedRoute role="librarian" element={<LibrarianProfile />} />}
+        />
+        <Route
           path="/librarian/circulation"
           element={
             <ProtectedRoute role="librarian" element={<ManageCirculation />} />
@@ -125,6 +130,10 @@ function App() {
         <Route
           path="/member/dashboard"
           element={<ProtectedRoute role="member" element={<MemberDashboard />} />}
+        />
+        <Route
+          path="/member/profile"
+          element={<ProtectedRoute role="member" element={<MyProfile />} />}
         />
         <Route
           path="/member/books"

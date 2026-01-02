@@ -14,8 +14,13 @@ export default function ProtectedRoute({ role, element }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (role && user.role !== role) {
-    return <Navigate to="/" replace />;
+  if (role) {
+    // Assistant has access to librarian routes
+    const userEffectiveRole = user.role === 'assistant' ? 'librarian' : user.role;
+    
+    if (userEffectiveRole !== role) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <>{element}</>;

@@ -16,9 +16,10 @@ export default function Navbar() {
   if (!user) {
     return (
       <nav className="bg-white border-b border-neutral-200 shadow-sm">
-        <div className="container-main flex justify-between items-center py-4">
-          <Link to="/" className="text-h5 font-bold text-primary-600">
-            📚 LMS
+        <div className="container-main flex justify-between items-center py-3">
+          <Link to="/" className="text-h4 font-bold text-primary-600 flex items-center gap-2">
+            <span className="text-2xl">📚</span>
+            <span>LMS</span>
           </Link>
           <div className="flex gap-4">
             <Link
@@ -46,25 +47,33 @@ export default function Navbar() {
     member: '/member/dashboard',
   }[user.role] || '/';
 
+  const profileLink = {
+    admin: '/admin/profile',
+    librarian: '/librarian/profile',
+    assistant: '/librarian/profile',
+    member: '/member/profile',
+  }[user.role] || '/';
+
   return (
     <nav className="bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50">
       <div className="container-main">
-        <div className="flex justify-between items-center py-4">
+        <div className="flex justify-between items-center py-3">
           {/* Logo */}
-          <Link to={dashboardLink} className="text-h5 font-bold text-primary-600">
-            📚 LMS
+          <Link to={dashboardLink} className="text-h4 font-bold text-primary-600 flex items-center gap-2">
+            <span className="text-2xl">📚</span>
+            <span>LMS</span>
           </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
             <span className="text-p4 text-neutral-600">
-              {user.fullName} <span className="text-neutral-400">({user.role})</span>
+              {user.fullName || 'User'} <span className="text-neutral-400">({user.role})</span>
             </span>
             <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
               <FiBell size={20} className="text-neutral-600" />
             </button>
             <button
-              onClick={() => navigate(`/${user.role}/profile`)}
+              onClick={() => navigate(profileLink)}
               className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
             >
               <FiUser size={20} className="text-neutral-600" />
@@ -100,7 +109,7 @@ export default function Navbar() {
               </button>
               <button
                 onClick={() => {
-                  navigate(`/${user.role}/profile`);
+                  navigate(profileLink);
                   setIsOpen(false);
                 }}
                 className="flex items-center gap-2 px-4 py-2 text-left hover:bg-neutral-50 rounded-lg w-full"

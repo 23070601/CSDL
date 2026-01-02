@@ -6,6 +6,14 @@ export interface User {
   role: 'admin' | 'librarian' | 'assistant' | 'member';
   status: 'active' | 'inactive' | 'suspended';
   createdAt: string;
+  // Extended profile fields
+  dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other';
+  profilePicture?: string;
+  address?: string;
+  phoneNumber?: string;
+  linkedIn?: string;
+  facebook?: string;
 }
 
 export interface AuthState {

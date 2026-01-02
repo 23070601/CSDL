@@ -3,22 +3,54 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '@/utils/api';
 
 export default function AdminDashboard() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     totalBooks: 0,
     totalMembers: 0,
     pendingOrders: 0,
     activeLoans: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
+    } else {
+      fetchDashboardStats();
     }
   }, [user, navigate]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      const booksRes = await apiClient.getBooks();
+      const membersRes = await apiClient.getMembers();
+      const ordersRes = await apiClient.getPurchaseOrders();
+      const loansRes = await apiClient.getLoans();
+
+      setStats({
+        totalBooks: booksRes.data?.length || 0,
+        totalMembers: membersRes.data?.length || 0,
+        pendingOrders: ordersRes.data?.filter((o: any) => o.status === 'pending')?.length || 0,
+        activeLoans: loansRes.data?.filter((l: any) => l.status === 'active')?.length || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      // Set default values if API fails
+      setStats({
+        totalBooks: 0,
+        totalMembers: 0,
+        pendingOrders: 0,
+        activeLoans: 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -34,13 +66,19 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      <div className="flex">
-        <Sidebar items={sidebarItems} />
-        <main className="flex-1 p-6 md:ml-64">
+      <Sidebar items={sidebarItems} />
+      <main className="md:ml-64 p-6">
           <div className="max-w-6xl mx-auto">
             <h1 className="text-h2 text-neutral-900 mb-8">Admin Dashboard</h1>
 
             {/* Stats Grid */}
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="card h-24 bg-gradient-to-r from-neutral-200 to-neutral-100 animate-pulse"></div>
+                ))}
+              </div>
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               <div className="card">
                 <div className="flex items-center justify-between">
@@ -82,21 +120,34 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* Quick Actions */}
             <div className="card">
               <h2 className="text-h5 text-neutral-900 mb-6">Quick Actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold">
+                <button 
+                  onClick={() => navigate('/admin/staff')}
+                  className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold"
+                >
                   Add Staff
                 </button>
-                <button className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold">
+                <button 
+                  onClick={() => navigate('/admin/books')}
+                  className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold"
+                >
                   Add Book
                 </button>
-                <button className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold">
+                <button 
+                  onClick={() => navigate('/admin/purchase-orders')}
+                  className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold"
+                >
                   New Order
                 </button>
-                <button className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold">
+                <button 
+                  onClick={() => navigate('/admin/reports')}
+                  className="p-4 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-semibold"
+                >
                   View Reports
                 </button>
               </div>
@@ -111,7 +162,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </main>
-      </div>
     </div>
   );
 }

@@ -94,7 +94,7 @@ export default function Sidebar({ items }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen md:h-auto w-64 bg-white border-r border-neutral-200 overflow-y-auto transition-transform z-40 ${
+        className={`fixed top-0 left-0 h-screen w-64 bg-primary-50 border-r border-primary-200 overflow-y-auto transition-transform z-40 ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >

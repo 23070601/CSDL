@@ -16,17 +16,52 @@ export default function Reports() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      <div className="flex">
-        <Sidebar items={sidebarItems} />
-        <main className="flex-1 p-6 md:ml-64">
+      <Sidebar items={sidebarItems} />
+      <main className="md:ml-64 p-6">
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-h2 text-neutral-900 mb-8">Reports</h1>
-            <div className="card">
-              <p className="text-p4 text-neutral-600">Reports interface coming soon...</p>
+            <h1 className="text-h2 text-neutral-900 mb-2">Reports</h1>
+            <p className="text-p4 text-neutral-600 mb-8">Access and generate detailed reports about library operations</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  title: 'Books Statistics',
+                  description: 'View total books, available copies, and top categories',
+                  icon: '📚',
+                  color: 'bg-blue-50 border-blue-200',
+                },
+                {
+                  title: 'Member Activity',
+                  description: 'Track member registrations, active members, and loan history',
+                  icon: '👥',
+                  color: 'bg-green-50 border-green-200',
+                },
+                {
+                  title: 'Financial Report',
+                  description: 'Analyze fines collected, pending payments, and revenue trends',
+                  icon: '💰',
+                  color: 'bg-purple-50 border-purple-200',
+                },
+                {
+                  title: 'Staff Performance',
+                  description: 'Monitor staff activities, processed transactions, and efficiency metrics',
+                  icon: '📊',
+                  color: 'bg-orange-50 border-orange-200',
+                },
+              ].map((report, idx) => (
+                <div
+                  key={idx}
+                  className={`card border-2 cursor-pointer hover:shadow-md transition-shadow ${report.color}`}
+                >
+                  <div className="text-4xl mb-4">{report.icon}</div>
+                  <h3 className="text-h3 text-neutral-900 mb-2">{report.title}</h3>
+                  <p className="text-p4 text-neutral-600 mb-6">{report.description}</p>
+                  <button className="text-primary-600 font-semibold hover:underline">Generate Report →</button>
+                </div>
+              ))}
             </div>
           </div>
         </main>
       </div>
-    </div>
   );
 }

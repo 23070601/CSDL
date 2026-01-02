@@ -31,7 +31,7 @@ export default function Login() {
       console.log('Login response:', response);
       
       // Extract user and token from response
-      const { user, token } = response.data;
+      let { user, token } = response.data;
       
       if (!user || !token) {
         setError('Invalid server response');
@@ -39,8 +39,22 @@ export default function Login() {
         return;
       }
 
-      console.log('Login successful, user:', user);
+      // Normalize user object to match frontend User type
+      user = {
+        id: user.id || user.StaffID || user.MemberID || '',
+        email: user.email || user.Email || '',
+        fullName: user.fullName || user.Name || user.FullName || '',
+        role: (user.role || user.Role || '').toLowerCase(),
+        status: user.status || user.Status || 'active',
+        createdAt: user.createdAt || user.CreatedAt || new Date().toISOString(),
+      };
+
+      console.log('Normalized user:', user);
       
+      if (!user.fullName) {
+        console.warn('Warning: User fullName is empty');
+      }
+
       setUser(user);
       setToken(token);
       localStorage.setItem('token', token);
