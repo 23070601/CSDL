@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
+import RecentActivity from '@/components/RecentActivity';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/utils/api';
@@ -35,8 +36,12 @@ export default function AdminDashboard() {
       setStats({
         totalBooks: booksRes.data?.length || 0,
         totalMembers: membersRes.data?.length || 0,
-        pendingOrders: ordersRes.data?.filter((o: any) => o.status === 'pending')?.length || 0,
-        activeLoans: loansRes.data?.filter((l: any) => l.status === 'active')?.length || 0,
+        pendingOrders: ordersRes.data?.filter((o: any) => 
+          o.Status?.toLowerCase() === 'pending' || o.status?.toLowerCase() === 'pending'
+        )?.length || 0,
+        activeLoans: loansRes.data?.filter((l: any) => 
+          l.Status?.toLowerCase() === 'borrowed' || l.status?.toLowerCase() === 'active'
+        )?.length || 0,
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -154,11 +159,8 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Activity */}
-            <div className="card mt-8">
-              <h2 className="text-h5 text-neutral-900 mb-6">Recent Activity</h2>
-              <p className="text-p4 text-neutral-600">
-                Activity feed will be displayed here
-              </p>
+            <div className="mt-8">
+              <RecentActivity />
             </div>
           </div>
         </main>

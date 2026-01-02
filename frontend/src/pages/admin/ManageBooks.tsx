@@ -1,40 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
+import { apiClient } from '@/utils/api';
 
 interface Book {
-  bookId: string;
+  id?: string;
+  bookId?: string;
   title: string;
-  author: string;
+  author?: string;
   isbn: string;
-  category: string;
-  totalCopies: number;
-  availableCopies: number;
+  category?: string;
+  totalCopies?: number;
+  availableCopies?: number;
+  Title?: string;
+  BookID?: string;
+  ISBN?: string;
 }
 
 export default function ManageBooks() {
-  const [books, setBooks] = useState<Book[]>([
-    {
-      bookId: '1',
-      title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      isbn: '9780743273565',
-      category: 'Fiction',
-      totalCopies: 5,
-      availableCopies: 3,
-    },
-    {
-      bookId: '2',
-      title: 'To Kill a Mockingbird',
-      author: 'Harper Lee',
-      isbn: '9780061120084',
-      category: 'Fiction',
-      totalCopies: 3,
-      availableCopies: 2,
-    },
-  ]);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [newBook, setNewBook] = useState({
@@ -44,6 +31,23 @@ export default function ManageBooks() {
     category: '',
     totalCopies: 1,
   });
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getBooks();
+      setBooks(response.data || []);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      setBooks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -58,32 +62,53 @@ export default function ManageBooks() {
 
   const filteredBooks = books.filter(
     b =>
-      b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      b.isbn.includes(searchTerm)
+      (b.title || b.Title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (b.author || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (b.isbn || b.ISBN || '').includes(searchTerm)
   );
 
-  const handleAddBook = () => {
-    if (newBook.title && newBook.author && newBook.isbn) {
-      setBooks([
-        ...books,
-        {
-          bookId: Date.now().toString(),
-          title: newBook.title,
-          author: newBook.author,
-          isbn: newBook.isbn,
-          category: newBook.category,
+  const handleAddBook = async () => {
+    if (newBook.title && newBook.isbn) {
+      try {
+        const response = await apiClient.createBook({
+          Title: newBook.title,
+          ISBN: newBook.isbn,
+          Publisher: newBook.category || null,
+          PubYear: new Date().getFullYear(),
+        });
+        
+        const newBookData = {
+          bookId: response.data?.BookID || Date.now().toString(),
+          id: response.data?.BookID || Date.now().toString(),
+          title: response.data?.Title || newBook.title,
+          isbn: response.data?.ISBN || newBook.isbn,
+          category: response.data?.Publisher || newBook.category,
           totalCopies: newBook.totalCopies,
           availableCopies: newBook.totalCopies,
-        },
-      ]);
-      setNewBook({ title: '', author: '', isbn: '', category: '', totalCopies: 1 });
-      setIsAddingBook(false);
+        };
+        
+        setBooks([...books, newBookData]);
+        setNewBook({ title: '', author: '', isbn: '', category: '', totalCopies: 1 });
+        setIsAddingBook(false);
+      } catch (error) {
+        console.error('Error creating book:', error);
+        alert('Failed to create book. Please try again.');
+      }
     }
   };
 
-  const handleDeleteBook = (id: string) => {
-    setBooks(books.filter(b => b.bookId !== id));
+  const handleDeleteBook = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this book?')) {
+      return;
+    }
+    
+    try {
+      await apiClient.deleteBook(id);
+      setBooks(books.filter(b => (b.bookId || b.id) !== id));
+    } catch (error) {
+      console.error('Error deleting book:', error);
+      alert('Failed to delete book. Please try again.');
+    }
   };
 
   return (
@@ -166,34 +191,48 @@ export default function ManageBooks() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredBooks.map((book) => (
-                    <tr key={book.bookId} className="border-b border-neutral-100 hover:bg-neutral-50">
-                      <td className="px-6 py-4 text-p4 text-neutral-900 font-semibold">{book.title}</td>
-                      <td className="px-6 py-4 text-p4 text-neutral-600">{book.author}</td>
-                      <td className="px-6 py-4 text-p4 text-neutral-600">{book.isbn}</td>
-                      <td className="px-6 py-4 text-p4">{book.category}</td>
-                      <td className="px-6 py-4 text-p4 text-neutral-900">{book.totalCopies}</td>
-                      <td className="px-6 py-4 text-p4">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold ${
-                            book.availableCopies > 0
-                              ? 'bg-status-success-bg text-status-success'
-                              : 'bg-status-error-bg text-status-error'
-                          }`}
-                        >
-                          {book.availableCopies}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-p4">
-                        <button
-                          onClick={() => handleDeleteBook(book.bookId)}
-                          className="text-status-error hover:underline"
-                        >
-                          Delete
-                        </button>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center text-neutral-500">
+                        Loading books...
                       </td>
                     </tr>
-                  ))}
+                  ) : filteredBooks.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-8 text-center text-neutral-500">
+                        No books found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredBooks.map((book) => (
+                      <tr key={book.BookID || book.bookId || book.id} className="border-b border-neutral-100 hover:bg-neutral-50">
+                        <td className="px-6 py-4 text-p4 text-neutral-900 font-semibold">{book.title || book.Title}</td>
+                        <td className="px-6 py-4 text-p4 text-neutral-600">{book.author || '-'}</td>
+                        <td className="px-6 py-4 text-p4 text-neutral-600">{book.isbn || book.ISBN}</td>
+                        <td className="px-6 py-4 text-p4">{book.category || '-'}</td>
+                        <td className="px-6 py-4 text-p4 text-neutral-900">{book.totalCopies || '-'}</td>
+                        <td className="px-6 py-4 text-p4">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold ${
+                              (book.availableCopies || 0) > 0
+                                ? 'bg-status-success-bg text-status-success'
+                                : 'bg-status-error-bg text-status-error'
+                            }`}
+                          >
+                            {book.availableCopies || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-p4">
+                          <button
+                            onClick={() => handleDeleteBook(book.BookID || book.bookId || book.id || '')}
+                            className="text-status-error hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

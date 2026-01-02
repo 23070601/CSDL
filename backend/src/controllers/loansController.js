@@ -146,4 +146,32 @@ async function renewLoan(req, res) {
   }
 }
 
-module.exports = { createLoan, returnLoan, renewLoan };
+async function getLoans(req, res) {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT LoanID, MemberID, CopyID, StaffID, LoanDate, DueDate, ReturnDate, Status 
+       FROM LOAN ORDER BY LoanDate DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('getLoans error', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
+async function getLoan(req, res) {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.execute(
+      'SELECT LoanID, MemberID, CopyID, StaffID, LoanDate, DueDate, ReturnDate, Status FROM LOAN WHERE LoanID = ? LIMIT 1',
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ message: 'Loan not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('getLoan error', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
+module.exports = { createLoan, returnLoan, renewLoan, getLoans, getLoan };

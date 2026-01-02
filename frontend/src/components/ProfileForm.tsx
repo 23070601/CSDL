@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
@@ -7,23 +7,41 @@ import Select from '@/components/Select';
 interface ProfileFormProps {
   onSave: (data: any) => Promise<void>;
   isLoading?: boolean;
+  initialData?: any;
 }
 
-export default function ProfileForm({ onSave, isLoading = false }: ProfileFormProps) {
+export default function ProfileForm({ onSave, isLoading = false, initialData }: ProfileFormProps) {
   const { user, setUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phoneNumber: user?.phoneNumber || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    gender: user?.gender || '',
-    address: user?.address || '',
-    linkedIn: user?.linkedIn || '',
-    facebook: user?.facebook || '',
+    fullName: initialData?.fullName || user?.fullName || '',
+    email: initialData?.email || user?.email || '',
+    phoneNumber: initialData?.phoneNumber || user?.phoneNumber || '',
+    dateOfBirth: initialData?.dateOfBirth || user?.dateOfBirth || '',
+    gender: initialData?.gender || user?.gender || '',
+    address: initialData?.address || user?.address || '',
+    linkedIn: initialData?.linkedIn || user?.linkedIn || '',
+    facebook: initialData?.facebook || user?.facebook || '',
     profilePicture: '', // Keep profile picture in memory only, not in localStorage
   });
+
+  // Update formData when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: initialData.fullName || prev.fullName,
+        email: initialData.email || prev.email,
+        phoneNumber: initialData.phoneNumber || prev.phoneNumber,
+        dateOfBirth: initialData.dateOfBirth || prev.dateOfBirth,
+        gender: initialData.gender || prev.gender,
+        address: initialData.address || prev.address,
+        linkedIn: initialData.linkedIn || prev.linkedIn,
+        facebook: initialData.facebook || prev.facebook,
+      }));
+    }
+  }, [initialData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,12 +67,28 @@ export default function ProfileForm({ onSave, isLoading = false }: ProfileFormPr
 
   const handleSave = async () => {
     try {
-      // Exclude profile picture from the API request to avoid sending large base64 data
+      // Save profile data to backend
       const { profilePicture, ...dataToSend } = formData;
-      
       await onSave(dataToSend);
-      // Update local user state - exclude profile picture from localStorage to avoid quota exceeded
       
+      // If profile picture was changed, save it separately via multipart form
+      if (profilePicture) {
+        const formDataWithImage = new FormData();
+        // Convert base64 to blob for file upload
+        const byteCharacters = atob(profilePicture.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+        formDataWithImage.append('profilePicture', blob, 'profile.jpg');
+        
+        // Note: This requires a separate upload endpoint on the backend
+        // For now, the profile picture is stored in state only
+      }
+      
+      // Update local user state
       setUser({
         ...user,
         ...dataToSend,

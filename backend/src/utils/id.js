@@ -13,4 +13,9 @@ function generateLostId() {
   return `LR${base}`.slice(0, 10);
 }
 
-module.exports = { generateLogId, generateLoanId, generateLostId };
+function generateStaffId() {
+  const base = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return `ST${base}`.slice(0, 10);
+}
+
+module.exports = { generateLogId, generateLoanId, generateLostId, generateStaffId };

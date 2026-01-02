@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
+import { apiClient } from '@/utils/api';
 
 interface Staff {
   id: string;
@@ -14,24 +15,8 @@ interface Staff {
 }
 
 export default function ManageStaff() {
-  const [staff, setStaff] = useState<Staff[]>([
-    {
-      id: '1',
-      email: 'duchm@library.com',
-      name: 'Đặng Uyên Chi',
-      role: 'admin',
-      status: 'active',
-      joinDate: '2023-01-15',
-    },
-    {
-      id: '2',
-      email: 'minhtv@library.com',
-      name: 'Trương Văn Minh',
-      role: 'librarian',
-      status: 'active',
-      joinDate: '2023-06-20',
-    },
-  ]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingStaff, setIsAddingStaff] = useState(false);
   const [newStaff, setNewStaff] = useState({
@@ -39,6 +24,32 @@ export default function ManageStaff() {
     name: '',
     role: 'librarian' as const,
   });
+
+  useEffect(() => {
+    fetchStaff();
+  }, []);
+
+  const fetchStaff = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getStaff();
+      // Map backend response format to interface
+      const mappedStaff = (response.data || []).map((item: any) => ({
+        id: item.StaffID || item.id || '',
+        email: item.Email || item.email || '',
+        name: item.FullName || item.name || '',
+        role: item.Role || item.role || 'librarian',
+        status: (item.ActiveFlag === 1 || item.ActiveFlag === true ? 'active' : 'inactive') as 'active' | 'inactive',
+        joinDate: item.joinDate || new Date().toISOString().split('T')[0],
+      }));
+      setStaff(mappedStaff);
+    } catch (error) {
+      console.error('Error fetching staff:', error);
+      setStaff([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -53,30 +64,52 @@ export default function ManageStaff() {
 
   const filteredStaff = staff.filter(
     s =>
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddStaff = () => {
+  const handleAddStaff = async () => {
     if (newStaff.email && newStaff.name) {
-      setStaff([
-        ...staff,
-        {
-          id: Date.now().toString(),
+      try {
+        // Create staff member via API
+        const response = await apiClient.createStaff({
           email: newStaff.email,
-          name: newStaff.name,
+          fullName: newStaff.name,
           role: newStaff.role,
           status: 'active',
-          joinDate: new Date().toISOString().split('T')[0],
-        },
-      ]);
-      setNewStaff({ email: '', name: '', role: 'librarian' });
-      setIsAddingStaff(false);
+        });
+        
+        // Add to local state with API response, mapping backend format to interface
+        const newStaffMember = {
+          id: response.data.id || response.data.StaffID || '',
+          email: response.data.email || response.data.Email || '',
+          name: response.data.name || response.data.FullName || '',
+          role: response.data.role || response.data.Role || newStaff.role,
+          status: (response.data.status === 'active' || response.data.ActiveFlag === 1 || response.data.ActiveFlag === true ? 'active' : 'inactive') as 'active' | 'inactive',
+          joinDate: response.data.joinDate || new Date().toISOString().split('T')[0],
+        };
+        setStaff([...staff, newStaffMember]);
+        setNewStaff({ email: '', name: '', role: 'librarian' });
+        setIsAddingStaff(false);
+      } catch (error) {
+        console.error('Error creating staff:', error);
+        alert('Failed to create staff member. Please try again.');
+      }
     }
   };
 
-  const handleDeleteStaff = (id: string) => {
-    setStaff(staff.filter(s => s.id !== id));
+  const handleDeleteStaff = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this staff member?')) {
+      return;
+    }
+    
+    try {
+      await apiClient.deleteStaff(id);
+      setStaff(staff.filter(s => s.id !== id));
+    } catch (error) {
+      console.error('Error deleting staff:', error);
+      alert('Failed to delete staff member. Please try again.');
+    }
   };
 
   return (
@@ -153,39 +186,53 @@ export default function ManageStaff() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStaff.map((member) => (
-                    <tr key={member.id} className="border-b border-neutral-100 hover:bg-neutral-50">
-                      <td className="px-6 py-4 text-p4 text-neutral-900">{member.name}</td>
-                      <td className="px-6 py-4 text-p4 text-neutral-600">{member.email}</td>
-                      <td className="px-6 py-4 text-p4">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-tag-sm font-semibold bg-primary-100 text-primary-700">
-                          {member.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-p4">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold ${
-                            member.status === 'active'
-                              ? 'bg-status-success-bg text-status-success'
-                              : 'bg-status-error-bg text-status-error'
-                          }`}
-                        >
-                          {member.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-p4 text-neutral-600">
-                        {new Date(member.joinDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-p4">
-                        <button
-                          onClick={() => handleDeleteStaff(member.id)}
-                          className="text-status-error hover:underline"
-                        >
-                          Delete
-                        </button>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-neutral-500">
+                        Loading staff members...
                       </td>
                     </tr>
-                  ))}
+                  ) : filteredStaff.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-neutral-500">
+                        No staff members found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStaff.map((member) => (
+                      <tr key={member.id} className="border-b border-neutral-100 hover:bg-neutral-50">
+                        <td className="px-6 py-4 text-p4 text-neutral-900">{member.name}</td>
+                        <td className="px-6 py-4 text-p4 text-neutral-600">{member.email}</td>
+                        <td className="px-6 py-4 text-p4">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-tag-sm font-semibold bg-primary-100 text-primary-700">
+                            {member.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-p4">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold ${
+                              member.status === 'active'
+                                ? 'bg-status-success-bg text-status-success'
+                                : 'bg-status-error-bg text-status-error'
+                            }`}
+                          >
+                            {member.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-p4 text-neutral-600">
+                          {new Date(member.joinDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-p4">
+                          <button
+                            onClick={() => handleDeleteStaff(member.id)}
+                            className="text-status-error hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

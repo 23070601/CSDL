@@ -1,26 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
+import { apiClient } from '@/utils/api';
 
 interface Supplier {
-  id: string;
+  id?: string;
   name: string;
   email: string;
-  phone: string;
-  address: string;
-  status: 'active' | 'inactive';
+  phone?: string;
+  address?: string;
+  status?: 'active' | 'inactive';
+  SupplierID?: string;
+  Name?: string;
+  Email?: string;
 }
 
 export default function ManageSuppliers() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([
-    { id: '1', name: 'ABC Publisher', email: 'abc@publisher.com', phone: '0123456789', address: '123 Main St', status: 'active' },
-    { id: '2', name: 'XYZ Books', email: 'xyz@books.com', phone: '0987654321', address: '456 Oak Ave', status: 'active' },
-  ]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.getSuppliers();
+      setSuppliers(response.data || []);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+      setSuppliers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -33,13 +52,34 @@ export default function ManageSuppliers() {
     { label: 'System Config', path: '/admin/config', icon: '⚙️' },
   ];
 
-  const filtered = suppliers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = suppliers.filter(s => (s.name || s.Name || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newSupplier.name && newSupplier.email) {
-      setSuppliers([...suppliers, { id: Date.now().toString(), ...newSupplier, status: 'active' }]);
-      setNewSupplier({ name: '', email: '', phone: '', address: '' });
-      setIsAdding(false);
+      try {
+        const response = await apiClient.createSupplier({
+          Name: newSupplier.name,
+          Email: newSupplier.email,
+          Phone: newSupplier.phone || null,
+          Address: newSupplier.address || null,
+        });
+        
+        const newSupplierData = {
+          id: response.data?.SupplierID || Date.now().toString(),
+          name: response.data?.Name || newSupplier.name,
+          email: response.data?.Email || newSupplier.email,
+          phone: response.data?.Phone || newSupplier.phone,
+          address: response.data?.Address || newSupplier.address,
+          status: 'active' as const,
+        };
+        
+        setSuppliers([...suppliers, newSupplierData]);
+        setNewSupplier({ name: '', email: '', phone: '', address: '' });
+        setIsAdding(false);
+      } catch (error) {
+        console.error('Error creating supplier:', error);
+        alert('Failed to create supplier. Please try again.');
+      }
     }
   };
 
@@ -82,15 +122,29 @@ export default function ManageSuppliers() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((s) => (
-                    <tr key={s.id} className="border-b border-neutral-100 hover:bg-neutral-50">
-                      <td className="px-6 py-4 text-p4">{s.name}</td>
-                      <td className="px-6 py-4 text-p4">{s.email}</td>
-                      <td className="px-6 py-4 text-p4">{s.phone}</td>
-                      <td className="px-6 py-4 text-p4">{s.address}</td>
-                      <td className="px-6 py-4 text-p4"><span className="inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold bg-status-success-bg text-status-success">{s.status}</span></td>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">
+                        Loading suppliers...
+                      </td>
                     </tr>
-                  ))}
+                  ) : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">
+                        No suppliers found
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((s) => (
+                      <tr key={s.id || s.SupplierID} className="border-b border-neutral-100 hover:bg-neutral-50">
+                        <td className="px-6 py-4 text-p4">{s.name || s.Name}</td>
+                        <td className="px-6 py-4 text-p4">{s.email || s.Email}</td>
+                        <td className="px-6 py-4 text-p4">{s.phone || '-'}</td>
+                        <td className="px-6 py-4 text-p4">{s.address || '-'}</td>
+                        <td className="px-6 py-4 text-p4"><span className="inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold bg-status-success-bg text-status-success">{s.status || 'active'}</span></td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

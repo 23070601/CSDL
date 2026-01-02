@@ -15,6 +15,7 @@ const lost = require('./lost');
 const config = require('./config');
 const exportsCsv = require('./exports');
 const notifications = require('./notifications');
+const auditLogs = require('./auditLogs');
 
 const router = express.Router();
 
@@ -34,5 +35,6 @@ router.use(lost);
 router.use(config);
 router.use(exportsCsv);
 router.use(notifications);
+router.use(auditLogs);
 
 module.exports = router;

@@ -67,162 +67,166 @@ class ApiClient {
 
   // Books endpoints
   public getBooks(params?: Record<string, any>) {
-    return this.client.get('/books', { params });
+    return this.client.get('/api/books', { params });
   }
 
   public getBook(id: string) {
-    return this.client.get(`/books/${id}`);
+    return this.client.get(`/api/books/${id}`);
   }
 
   public createBook(data: Record<string, any>) {
-    return this.client.post('/books', data);
+    return this.client.post('/api/books', data);
   }
 
   public updateBook(id: string, data: Record<string, any>) {
-    return this.client.put(`/books/${id}`, data);
+    return this.client.put(`/api/books/${id}`, data);
   }
 
   public deleteBook(id: string) {
-    return this.client.delete(`/books/${id}`);
+    return this.client.delete(`/api/books/${id}`);
   }
 
   // Loans endpoints
   public getLoans(params?: Record<string, any>) {
-    return this.client.get('/loans', { params });
+    return this.client.get('/api/loans', { params });
   }
 
   public getLoan(id: string) {
-    return this.client.get(`/loans/${id}`);
+    return this.client.get(`/api/loans/${id}`);
   }
 
   public borrowBook(data: Record<string, any>) {
-    return this.client.post('/loans/borrow', data);
+    return this.client.post('/api/loans/borrow', data);
   }
 
   public returnBook(id: string) {
-    return this.client.post(`/loans/${id}/return`);
+    return this.client.post(`/api/loans/${id}/return`);
   }
 
   public renewLoan(id: string) {
-    return this.client.post(`/loans/${id}/renew`);
+    return this.client.post(`/api/loans/${id}/renew`);
   }
 
   // Reservations endpoints
   public getReservations(params?: Record<string, any>) {
-    return this.client.get('/reservations', { params });
+    return this.client.get('/api/reservations', { params });
   }
 
   public createReservation(data: Record<string, any>) {
-    return this.client.post('/reservations', data);
+    return this.client.post('/api/reservations', data);
   }
 
   public cancelReservation(id: string) {
-    return this.client.delete(`/reservations/${id}`);
+    return this.client.delete(`/api/reservations/${id}`);
   }
 
   // Fines endpoints
   public getFines(params?: Record<string, any>) {
-    return this.client.get('/fines', { params });
+    return this.client.get('/api/fines', { params });
   }
 
   public payFine(id: string, data: Record<string, any>) {
-    return this.client.post(`/fines/${id}/pay`, data);
+    return this.client.post(`/api/fines/${id}/pay`, data);
   }
 
   // Members endpoints
   public getMembers(params?: Record<string, any>) {
-    return this.client.get('/members', { params });
+    return this.client.get('/api/members', { params });
   }
 
   public getMember(id: string) {
-    return this.client.get(`/members/${id}`);
+    return this.client.get(`/api/members/${id}`);
   }
 
   public updateMember(id: string, data: Record<string, any>) {
-    return this.client.put(`/members/${id}`, data);
+    return this.client.put(`/api/members/${id}`, data);
   }
 
   // Staff endpoints
   public getStaff(params?: Record<string, any>) {
-    return this.client.get('/staff', { params });
+    return this.client.get('/api/staff', { params });
+  }
+
+  public getStaffById(id: string) {
+    return this.client.get(`/api/staff/${id}`);
   }
 
   public createStaff(data: Record<string, any>) {
-    return this.client.post('/staff', data);
+    return this.client.post('/api/staff', data);
   }
 
   public updateStaff(id: string, data: Record<string, any>) {
-    return this.client.put(`/staff/${id}`, data);
+    return this.client.put(`/api/staff/${id}`, data);
   }
 
   public deleteStaff(id: string) {
-    return this.client.delete(`/staff/${id}`);
+    return this.client.delete(`/api/staff/${id}`);
   }
 
   // Suppliers endpoints
   public getSuppliers(params?: Record<string, any>) {
-    return this.client.get('/suppliers', { params });
+    return this.client.get('/api/suppliers', { params });
   }
 
   public createSupplier(data: Record<string, any>) {
-    return this.client.post('/suppliers', data);
+    return this.client.post('/api/suppliers', data);
   }
 
   public updateSupplier(id: string, data: Record<string, any>) {
-    return this.client.put(`/suppliers/${id}`, data);
+    return this.client.put(`/api/suppliers/${id}`, data);
   }
 
   public deleteSupplier(id: string) {
-    return this.client.delete(`/suppliers/${id}`);
+    return this.client.delete(`/api/suppliers/${id}`);
   }
 
   // Purchase Orders endpoints
   public getPurchaseOrders(params?: Record<string, any>) {
-    return this.client.get('/purchase-orders', { params });
+    return this.client.get('/api/purchase-orders', { params });
   }
 
   public createPurchaseOrder(data: Record<string, any>) {
-    return this.client.post('/purchase-orders', data);
+    return this.client.post('/api/purchase-orders', data);
   }
 
   public updatePurchaseOrder(id: string, data: Record<string, any>) {
-    return this.client.put(`/purchase-orders/${id}`, data);
+    return this.client.put(`/api/purchase-orders/${id}`, data);
   }
 
   public deletePurchaseOrder(id: string) {
-    return this.client.delete(`/purchase-orders/${id}`);
+    return this.client.delete(`/api/purchase-orders/${id}`);
   }
 
   // Reports endpoints
   public getReports(params?: Record<string, any>) {
-    return this.client.get('/reports', { params });
+    return this.client.get('/api/reports', { params });
   }
 
   public generateReport(type: string, params?: Record<string, any>) {
-    return this.client.get(`/reports/generate/${type}`, { params });
+    return this.client.get(`/api/reports/generate/${type}`, { params });
   }
 
   // Audit Log endpoints
   public getAuditLogs(params?: Record<string, any>) {
-    return this.client.get('/audit-logs', { params });
+    return this.client.get('/api/audit-logs', { params });
   }
 
   // Notifications endpoints
   public getNotifications(params?: Record<string, any>) {
-    return this.client.get('/notifications', { params });
+    return this.client.get('/api/notifications', { params });
   }
 
   public markNotificationAsRead(id: string) {
-    return this.client.put(`/notifications/${id}/read`);
+    return this.client.put(`/api/notifications/${id}/read`);
   }
 
   // System Config endpoints
   public getConfig() {
-    return this.client.get('/config');
+    return this.client.get('/api/config');
   }
 
   public updateConfig(data: Record<string, any>) {
-    return this.client.put('/config', data);
+    return this.client.put('/api/config', data);
   }
 }
 
