@@ -11,7 +11,7 @@ interface ProfileFormProps {
 }
 
 export default function ProfileForm({ onSave, isLoading = false, initialData }: ProfileFormProps) {
-  const { user, setUser } = useAuthStore();
+  const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
@@ -67,32 +67,9 @@ export default function ProfileForm({ onSave, isLoading = false, initialData }: 
 
   const handleSave = async () => {
     try {
-      // Save profile data to backend
+      // Exclude profile picture from save (not yet supported in backend)
       const { profilePicture, ...dataToSend } = formData;
       await onSave(dataToSend);
-      
-      // If profile picture was changed, save it separately via multipart form
-      if (profilePicture) {
-        const formDataWithImage = new FormData();
-        // Convert base64 to blob for file upload
-        const byteCharacters = atob(profilePicture.split(',')[1]);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/jpeg' });
-        formDataWithImage.append('profilePicture', blob, 'profile.jpg');
-        
-        // Note: This requires a separate upload endpoint on the backend
-        // For now, the profile picture is stored in state only
-      }
-      
-      // Update local user state
-      setUser({
-        ...user,
-        ...dataToSend,
-      } as any);
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to save profile:', error);

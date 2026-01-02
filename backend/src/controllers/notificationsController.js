@@ -1,29 +1,26 @@
-// In-memory notifications store (persisted per session)
-let notificationsStore = [
-  {
-    NotificationID: 'NOT001',
-    Message: 'Welcome to the Library Management System',
-    Timestamp: new Date().toISOString(),
-    Read: false,
-  },
-  {
-    NotificationID: 'NOT002',
-    Message: 'You have 2 overdue books',
-    Timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    Read: false,
-  },
-  {
-    NotificationID: 'NOT003',
-    Message: 'A reserved book is ready for pickup',
-    Timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    Read: true,
-  },
-];
+const { pool } = require('../config/db');
 
 async function getNotifications(req, res) {
   try {
-    const limit = parseInt(req.query.limit) || 10;
-    const notifications = notificationsStore.slice(0, limit);
+    const memberId = req.user.id; // Get from authenticated user
+    const limit = parseInt(req.query.limit) || 50;
+    
+    const query = `
+      SELECT 
+        NotificationID,
+        Title,
+        Message,
+        Type,
+        CreatedAt,
+        IsRead,
+        MemberID
+      FROM NOTIFICATION
+      WHERE MemberID = ?
+      ORDER BY CreatedAt DESC
+      LIMIT ?
+    `;
+    
+    const [notifications] = await pool.query(query, [memberId, limit]);
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);
@@ -34,13 +31,15 @@ async function getNotifications(req, res) {
 async function markAsRead(req, res) {
   try {
     const { id } = req.params;
-    const notification = notificationsStore.find(n => n.NotificationID === id);
+    const memberId = req.user.id;
     
-    if (!notification) {
-      return res.status(404).json({ message: 'Notification not found' });
-    }
+    const query = `
+      UPDATE NOTIFICATION
+      SET IsRead = true
+      WHERE NotificationID = ? AND MemberID = ?
+    `;
     
-    notification.Read = true;
+    await pool.query(query, [id, memberId]);
     res.json({ message: 'Notification marked as read' });
   } catch (error) {
     console.error('Error marking notification as read:', error);
@@ -50,28 +49,29 @@ async function markAsRead(req, res) {
 
 async function notify(req, res) {
   try {
-    const { type, target, message } = req.body;
+    const { memberId, type, title, message } = req.body;
     
-    // Create new notification
-    const notificationId = `NOT${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
-    const newNotification = {
-      NotificationID: notificationId,
-      Message: message || `New ${type} notification`,
-      Timestamp: new Date().toISOString(),
-      Read: false,
-      Type: type,
-      Target: target,
-    };
+    // Generate notification ID
+    const notificationId = `NOT${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
     
-    // Add to store
-    notificationsStore.unshift(newNotification);
+    const query = `
+      INSERT INTO NOTIFICATION (NotificationID, MemberID, Type, Title, Message, IsRead, CreatedAt)
+      VALUES (?, ?, ?, ?, ?, false, NOW())
+    `;
     
-    // Keep only last 100 notifications
-    if (notificationsStore.length > 100) {
-      notificationsStore = notificationsStore.slice(0, 100);
-    }
+    await pool.query(query, [notificationId, memberId, type, title, message]);
     
-    res.status(201).json({ status: 'created', notification: newNotification });
+    res.status(201).json({ 
+      status: 'created', 
+      notification: {
+        NotificationID: notificationId,
+        MemberID: memberId,
+        Type: type,
+        Title: title,
+        Message: message,
+        IsRead: false,
+      }
+    });
   } catch (error) {
     console.error('Error creating notification:', error);
     res.status(500).json({ message: 'Error creating notification', error: error.message });

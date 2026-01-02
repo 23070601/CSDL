@@ -1,14 +1,26 @@
 const { pool } = require('../config/db');
-const { generateLogId, generateLoanId } = require('../utils/id');
+const { generateLogId, generateLoanId, generateReservationId } = require('../utils/id');
 
 async function listActiveReservations(req, res) {
   const [rows] = await pool.execute(
-    `SELECT R.ReservationID, R.BookID, B.Title, R.MemberID, M.FullName, R.ReserveDate, R.PositionInQueue, R.Status
+    `SELECT 
+       R.ReservationID, 
+       R.BookID, 
+       B.Title AS BookTitle, 
+       B.ISBN,
+       COALESCE(GROUP_CONCAT(DISTINCT A.FullName SEPARATOR ', '), 'Unknown') AS Author,
+       R.MemberID, 
+       M.FullName, 
+       R.ReserveDate AS ReservationDate, 
+       R.PositionInQueue, 
+       R.Status
      FROM RESERVATION R
      INNER JOIN BOOK B ON R.BookID = B.BookID
      INNER JOIN MEMBER M ON R.MemberID = M.MemberID
-     WHERE R.Status = 'Active'
-     ORDER BY R.BookID, R.PositionInQueue`
+     LEFT JOIN BOOK_AUTHOR BA ON B.BookID = BA.BookID
+     LEFT JOIN AUTHOR A ON BA.AuthorID = A.AuthorID
+     GROUP BY R.ReservationID, R.BookID, B.Title, B.ISBN, R.MemberID, M.FullName, R.ReserveDate, R.PositionInQueue, R.Status
+     ORDER BY R.ReserveDate DESC`
   );
   res.json(rows);
 }
@@ -113,8 +125,6 @@ async function cancelReservation(req, res) {
   }
 }
 
-module.exports = { listActiveReservations, fulfillReservation, cancelReservation };
-
 async function createReservation(req, res) {
   const { bookId, memberId } = req.body;
   
@@ -126,15 +136,16 @@ async function createReservation(req, res) {
   try {
     await conn.beginTransaction();
 
-    // Check if member exists
+    // Check if member exists and get member type
     const [members] = await conn.execute(
-      'SELECT MemberID FROM MEMBER WHERE MemberID = ?',
+      'SELECT MemberID, MemberType FROM MEMBER WHERE MemberID = ?',
       [memberId]
     );
     if (!members.length) {
       await conn.rollback();
       return res.status(404).json({ message: 'Member not found' });
     }
+    const memberType = members[0].MemberType;
 
     // Check if book exists
     const [books] = await conn.execute(
@@ -164,19 +175,13 @@ async function createReservation(req, res) {
     const nextPosition = (queue[0].MaxPosition || 0) + 1;
 
     // Generate reservation ID
-    const reservationId = `R${Date.now()}`;
+    const reservationId = generateReservationId();
 
     // Create the reservation
     await conn.execute(
-      `INSERT INTO RESERVATION (ReservationID, BookID, MemberID, ReserveDate, PositionInQueue, Status, ExpireDate)
-       VALUES (?, ?, ?, CURRENT_DATE, ?, ?, DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY))`,
-      [reservationId, bookId, memberId, nextPosition, 'Active']
-    );
-
-    const logId = generateLogId();
-    await conn.execute(
-      'INSERT INTO AUDITLOG (LogID, StaffID, Action, TableName, RecordID, Timestamp, Details) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)',
-      [logId, req.user?.id || 'ST001', 'CREATE', 'Reservation', reservationId, `Created reservation for Book ${bookId}, Member ${memberId}`]
+      `INSERT INTO RESERVATION (ReservationID, BookID, MemberID, ReserveDate, PositionInQueue, Status, ExpireDate, MemberType)
+       VALUES (?, ?, ?, CURRENT_DATE, ?, ?, DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY), ?)`,
+      [reservationId, bookId, memberId, nextPosition, 'Active', memberType]
     );
 
     await conn.commit();

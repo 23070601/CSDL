@@ -4,8 +4,8 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/reservations', auth(['Admin', 'Librarian', 'Assistant']), listActiveReservations);
-router.post('/reservations', auth(['Admin', 'Librarian', 'Assistant']), createReservation);
+router.get('/reservations', auth(['Admin', 'Librarian', 'Assistant', 'Member']), listActiveReservations);
+router.post('/reservations', auth(['Admin', 'Librarian', 'Assistant', 'Member']), createReservation);
 router.post('/reservations/:reservationId/fulfill', auth(['Admin', 'Librarian', 'Assistant']), fulfillReservation);
 router.post('/reservations/:reservationId/cancel', auth(['Admin', 'Librarian', 'Assistant', 'Member']), cancelReservation);
 router.delete('/reservations/:reservationId', auth(['Admin', 'Librarian', 'Assistant', 'Member']), cancelReservation);
