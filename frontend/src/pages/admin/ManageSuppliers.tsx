@@ -22,6 +22,7 @@ export default function ManageSuppliers() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
 
   useEffect(() => {
@@ -53,6 +54,51 @@ export default function ManageSuppliers() {
   ];
 
   const filtered = suppliers.filter(s => (s.name || s.Name || '').toLowerCase().includes(searchTerm.toLowerCase()));
+  const handleEditSupplier = async () => {
+    if (editingSupplier && editingSupplier.name && editingSupplier.email) {
+      try {
+        await apiClient.updateSupplier(editingSupplier.id || editingSupplier.SupplierID || '', {
+          Name: editingSupplier.name || editingSupplier.Name,
+          Email: editingSupplier.email || editingSupplier.Email,
+          Phone: editingSupplier.phone || '',
+          Address: editingSupplier.address || '',
+        });
+        
+        setSuppliers(suppliers.map(s => 
+          (s.id || s.SupplierID) === (editingSupplier.id || editingSupplier.SupplierID) 
+            ? editingSupplier 
+            : s
+        ));
+        setEditingSupplier(null);
+        alert('Supplier updated successfully!');
+      } catch (error) {
+        console.error('Error updating supplier:', error);
+        alert('Failed to update supplier. Please try again.');
+      }
+    }
+  };
+
+  const handleToggleStatus = async (supplier: Supplier) => {
+    const newStatus = (supplier.status || 'active') === 'active' ? 'inactive' : 'active';
+    try {
+      await apiClient.updateSupplier(supplier.id || supplier.SupplierID || '', {
+        Name: supplier.name || supplier.Name,
+        Email: supplier.email || supplier.Email,
+        Phone: supplier.phone || '',
+        Address: supplier.address || '',
+        Status: newStatus,
+      });
+      
+      setSuppliers(suppliers.map(s => 
+        (s.id || s.SupplierID) === (supplier.id || supplier.SupplierID) 
+          ? { ...s, status: newStatus as 'active' | 'inactive' } 
+          : s
+      ));
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Failed to update status. Please try again.');
+    }
+  };
 
   const handleAdd = async () => {
     if (newSupplier.name && newSupplier.email) {
@@ -94,6 +140,58 @@ export default function ManageSuppliers() {
               <Button onClick={() => setIsAdding(!isAdding)} variant="primary">{isAdding ? 'Cancel' : '+ Add Supplier'}</Button>
             </div>
 
+            {editingSupplier && (
+              <div className="card mb-6 p-6">
+                <h3 className="text-h5 text-neutral-900 mb-4">Edit Supplier</h3>
+                <div className="space-y-4">
+                  <Input
+                    label="Name"
+                    value={editingSupplier.name || editingSupplier.Name || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, name: e.target.value, Name: e.target.value })}
+                    placeholder="Supplier name"
+                  />
+                  <Input
+                    label="Email"
+                    type="email"
+                    value={editingSupplier.email || editingSupplier.Email || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, email: e.target.value, Email: e.target.value })}
+                    placeholder="email@example.com"
+                  />
+                  <Input
+                    label="Phone"
+                    value={editingSupplier.phone || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, phone: e.target.value })}
+                    placeholder="Phone number"
+                  />
+                  <Input
+                    label="Address"
+                    value={editingSupplier.address || ''}
+                    onChange={(e) => setEditingSupplier({ ...editingSupplier, address: e.target.value })}
+                    placeholder="Address"
+                  />
+                  <div>
+                    <label className="block text-p4 font-semibold text-neutral-900 mb-2">Status</label>
+                    <select
+                      value={editingSupplier.status || 'active'}
+                      onChange={(e) => setEditingSupplier({ ...editingSupplier, status: e.target.value as 'active' | 'inactive' })}
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleEditSupplier} variant="primary">
+                      Save Changes
+                    </Button>
+                    <Button onClick={() => setEditingSupplier(null)} variant="secondary">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {isAdding && (
               <div className="card mb-6 p-6">
                 <div className="space-y-4">
@@ -119,18 +217,19 @@ export default function ManageSuppliers() {
                     <th className="px-6 py-4 text-left text-p5 font-semibold">Phone</th>
                     <th className="px-6 py-4 text-left text-p5 font-semibold">Address</th>
                     <th className="px-6 py-4 text-left text-p5 font-semibold">Status</th>
+                    <th className="px-6 py-4 text-left text-p5 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-neutral-500">
                         Loading suppliers...
                       </td>
                     </tr>
                   ) : filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-neutral-500">
                         No suppliers found
                       </td>
                     </tr>
@@ -139,9 +238,29 @@ export default function ManageSuppliers() {
                       <tr key={s.id || s.SupplierID} className="border-b border-neutral-100 hover:bg-neutral-50">
                         <td className="px-6 py-4 text-p4">{s.name || s.Name}</td>
                         <td className="px-6 py-4 text-p4">{s.email || s.Email}</td>
-                        <td className="px-6 py-4 text-p4">{s.phone || '-'}</td>
-                        <td className="px-6 py-4 text-p4">{s.address || '-'}</td>
-                        <td className="px-6 py-4 text-p4"><span className="inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold bg-status-success-bg text-status-success">{s.status || 'active'}</span></td>
+                        <td className="px-6 py-4 text-p4">{s.Phone || s.phone || '-'}</td>
+                        <td className="px-6 py-4 text-p4">{s.Address || s.address || '-'}</td>
+                        <td className="px-6 py-4 text-p4">
+                          <button
+                            onClick={() => handleToggleStatus(s)}
+                            className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold cursor-pointer transition-colors ${
+                              (s.status || 'active') === 'active'
+                                ? 'bg-status-success-bg text-status-success hover:bg-green-200'
+                                : 'bg-status-error-bg text-status-error hover:bg-red-200'
+                            }`}
+                            title={`Click to change to ${(s.status || 'active') === 'active' ? 'inactive' : 'active'}`}
+                          >
+                            {s.status || 'active'}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 text-p4">
+                          <button
+                            onClick={() => setEditingSupplier(s)}
+                            className="text-primary-600 hover:underline font-semibold"
+                          >
+                            Edit
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}

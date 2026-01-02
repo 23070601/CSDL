@@ -6,12 +6,17 @@ import Button from '@/components/Button';
 import { apiClient } from '@/utils/api';
 
 interface Config {
-  libraryName: string;
-  maxBorrowDays: number;
-  maxBooksPerMember: number;
-  finePerDay: number;
-  email: string;
-  phone: string;
+  libraryName?: string;
+  maxBorrowDays?: number;
+  maxBooksPerMember?: number;
+  finePerDay?: number;
+  email?: string;
+  phone?: string;
+  loanPeriodDays?: number;
+  maxRenewals?: number;
+  holdHours?: number;
+  maxActiveLoans?: number;
+  [key: string]: any;
 }
 
 export default function SystemConfig() {
@@ -174,6 +179,62 @@ export default function SystemConfig() {
                     />
                   ) : (
                     <p className="text-p4 text-neutral-700">{config.phone}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-p5 font-semibold text-neutral-900 mb-2">Loan Period (Days)</label>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      value={config.loanPeriodDays || 14}
+                      onChange={(e) => handleChange('loanPeriodDays', parseInt(e.target.value))}
+                      placeholder="Days"
+                    />
+                  ) : (
+                    <p className="text-p4 text-neutral-700">{config.loanPeriodDays || 14} days</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-p5 font-semibold text-neutral-900 mb-2">Maximum Renewals</label>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      value={config.maxRenewals || 2}
+                      onChange={(e) => handleChange('maxRenewals', parseInt(e.target.value))}
+                      placeholder="Renewals"
+                    />
+                  ) : (
+                    <p className="text-p4 text-neutral-700">{config.maxRenewals || 2} times</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-p5 font-semibold text-neutral-900 mb-2">Hold Period (Hours)</label>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      value={config.holdHours || 48}
+                      onChange={(e) => handleChange('holdHours', parseInt(e.target.value))}
+                      placeholder="Hours"
+                    />
+                  ) : (
+                    <p className="text-p4 text-neutral-700">{config.holdHours || 48} hours</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-p5 font-semibold text-neutral-900 mb-2">Maximum Active Loans</label>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      value={config.maxActiveLoans || 5}
+                      onChange={(e) => handleChange('maxActiveLoans', parseInt(e.target.value))}
+                      placeholder="Loans"
+                    />
+                  ) : (
+                    <p className="text-p4 text-neutral-700">{config.maxActiveLoans || 5} loans</p>
                   )}
                 </div>
               </div>

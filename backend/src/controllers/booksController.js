@@ -5,9 +5,12 @@ async function listBooks(req, res) {
     `SELECT B.BookID, B.Title, B.ISBN, B.Publisher, B.PubYear,
             COUNT(BC.CopyID) AS TotalCopies,
             COUNT(CASE WHEN BC.Status = 'Available' THEN 1 END) AS AvailableCopies,
-            COUNT(CASE WHEN BC.Status = 'Borrowed' THEN 1 END) AS BorrowedCopies
+            COUNT(CASE WHEN BC.Status = 'Borrowed' THEN 1 END) AS BorrowedCopies,
+            GROUP_CONCAT(A.FullName SEPARATOR ', ') AS Authors
      FROM BOOK B
      LEFT JOIN BOOKCOPY BC ON B.BookID = BC.BookID
+     LEFT JOIN BOOK_AUTHOR BA ON B.BookID = BA.BookID
+     LEFT JOIN AUTHOR A ON BA.AuthorID = A.AuthorID
      GROUP BY B.BookID, B.Title, B.ISBN, B.Publisher, B.PubYear
      ORDER BY B.Title`
   );

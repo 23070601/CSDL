@@ -2,23 +2,18 @@ const { pool } = require('../config/db');
 
 async function getAuditLogs(req, res) {
   try {
-    let limit = parseInt(req.query.limit) || 50;
-    let offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 50;
     
-    // Validate and constrain values
-    limit = Math.min(Math.max(limit, 1), 100);
-    offset = Math.max(offset, 0);
+    // Use simple query without prepared statement parameters for limit
+    const query = `
+      SELECT LogID as id, StaffID as user_id, Action as action, TableName, RecordID, 
+             Details as details, Timestamp as timestamp
+      FROM AUDITLOG 
+      ORDER BY Timestamp DESC 
+      LIMIT ${Math.min(Math.max(limit, 1), 100)}
+    `;
     
-    // Use simple LIMIT without offset for now
-    const [rows] = await pool.execute(
-      `SELECT LogID as id, StaffID as user_id, Action as action, TableName, RecordID, 
-              Details as details, Timestamp as timestamp
-       FROM AUDITLOG 
-       ORDER BY Timestamp DESC 
-       LIMIT ?`,
-      [limit]
-    );
-    
+    const [rows] = await pool.execute(query);
     res.json(rows || []);
   } catch (error) {
     console.error('Error fetching audit logs:', error);

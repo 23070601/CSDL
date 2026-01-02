@@ -19,6 +19,8 @@ export default function ManageStaff() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddingStaff, setIsAddingStaff] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [generatedPassword, setGeneratedPassword] = useState('');
   const [newStaff, setNewStaff] = useState({
     email: '',
     name: '',
@@ -71,6 +73,7 @@ export default function ManageStaff() {
   const handleAddStaff = async () => {
     if (newStaff.email && newStaff.name) {
       try {
+        const defaultPassword = 'Password123!';
         // Create staff member via API
         const response = await apiClient.createStaff({
           email: newStaff.email,
@@ -89,12 +92,50 @@ export default function ManageStaff() {
           joinDate: response.data.joinDate || new Date().toISOString().split('T')[0],
         };
         setStaff([...staff, newStaffMember]);
+        setGeneratedPassword(defaultPassword);
         setNewStaff({ email: '', name: '', role: 'librarian' });
-        setIsAddingStaff(false);
+        // Don't close form immediately so user can see password
       } catch (error) {
         console.error('Error creating staff:', error);
         alert('Failed to create staff member. Please try again.');
       }
+    }
+  };
+
+  const handleEditStaff = async () => {
+    if (editingStaff && editingStaff.email && editingStaff.name) {
+      try {
+        await apiClient.updateStaff(editingStaff.id, {
+          fullName: editingStaff.name,
+          email: editingStaff.email,
+          role: editingStaff.role,
+          status: editingStaff.status,
+        });
+        
+        setStaff(staff.map(s => s.id === editingStaff.id ? editingStaff : s));
+        setEditingStaff(null);
+        alert('Staff member updated successfully!');
+      } catch (error) {
+        console.error('Error updating staff:', error);
+        alert('Failed to update staff member. Please try again.');
+      }
+    }
+  };
+
+  const handleToggleStatus = async (member: Staff) => {
+    const newStatus = member.status === 'active' ? 'inactive' : 'active';
+    try {
+      await apiClient.updateStaff(member.id, {
+        fullName: member.name,
+        email: member.email,
+        role: member.role,
+        status: newStatus,
+      });
+      
+      setStaff(staff.map(s => s.id === member.id ? { ...s, status: newStatus as 'active' | 'inactive' } : s));
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Failed to update status. Please try again.');
     }
   };
 
@@ -128,7 +169,85 @@ export default function ManageStaff() {
               </Button>
             </div>
 
-            {isAddingStaff && (
+            {generatedPassword && (
+              <div className="card mb-6 p-6 bg-green-50 border-l-4 border-green-500">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="text-h5 text-green-900 mb-2">✅ Staff Member Created Successfully!</h3>
+                    <p className="text-p4 text-green-800 mb-4">Please save this password - it won't be shown again:</p>
+                    <div className="bg-white p-4 rounded border-2 border-green-300 mb-4">
+                      <p className="text-p5 text-neutral-600 mb-1">Email: <span className="font-semibold">{staff[staff.length - 1]?.email}</span></p>
+                      <p className="text-p5 text-neutral-600 mb-2">Default Password:</p>
+                      <p className="text-h5 font-mono text-neutral-900 bg-neutral-100 p-3 rounded">{generatedPassword}</p>
+                    </div>
+                    <p className="text-p5 text-green-700">The staff member should change this password after first login.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setGeneratedPassword('');
+                      setIsAddingStaff(false);
+                    }}
+                    className="text-green-700 hover:text-green-900 font-bold text-xl ml-4"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {editingStaff && (
+              <div className="card mb-6 p-6">
+                <h3 className="text-h5 text-neutral-900 mb-4">Edit Staff Member</h3>
+                <div className="space-y-4">
+                  <Input
+                    label="Name"
+                    value={editingStaff.name}
+                    onChange={(e) => setEditingStaff({ ...editingStaff, name: e.target.value })}
+                    placeholder="Full name"
+                  />
+                  <Input
+                    label="Email"
+                    type="email"
+                    value={editingStaff.email}
+                    onChange={(e) => setEditingStaff({ ...editingStaff, email: e.target.value })}
+                    placeholder="email@example.com"
+                  />
+                  <div>
+                    <label className="block text-p4 font-semibold text-neutral-900 mb-2">Role</label>
+                    <select
+                      value={editingStaff.role}
+                      onChange={(e) => setEditingStaff({ ...editingStaff, role: e.target.value as 'admin' | 'librarian' | 'assistant' })}
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="admin">Admin</option>
+                      <option value="librarian">Librarian</option>
+                      <option value="assistant">Assistant</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-p4 font-semibold text-neutral-900 mb-2">Status</label>
+                    <select
+                      value={editingStaff.status}
+                      onChange={(e) => setEditingStaff({ ...editingStaff, status: e.target.value as 'active' | 'inactive' })}
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleEditStaff} variant="primary">
+                      Save Changes
+                    </Button>
+                    <Button onClick={() => setEditingStaff(null)} variant="secondary">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isAddingStaff && !generatedPassword && (
               <div className="card mb-6 p-6">
                 <h3 className="text-h5 text-neutral-900 mb-4">Add New Staff Member</h3>
                 <div className="space-y-4">
@@ -182,7 +301,7 @@ export default function ManageStaff() {
                     <th className="px-6 py-4 text-left text-p5 font-semibold text-neutral-900">Role</th>
                     <th className="px-6 py-4 text-left text-p5 font-semibold text-neutral-900">Status</th>
                     <th className="px-6 py-4 text-left text-p5 font-semibold text-neutral-900">Join Date</th>
-                    <th className="px-6 py-4 text-left text-p5 font-semibold text-neutral-900">Actions</th>
+                    <th className="px-6 py-4 text-left text-p5 font-semibold text-neutral-900" style={{width: '200px'}}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -209,26 +328,36 @@ export default function ManageStaff() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-p4">
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold ${
+                          <button
+                            onClick={() => handleToggleStatus(member)}
+                            className={`inline-flex items-center px-2 py-1 rounded text-tag-sm font-semibold cursor-pointer transition-colors ${
                               member.status === 'active'
-                                ? 'bg-status-success-bg text-status-success'
-                                : 'bg-status-error-bg text-status-error'
+                                ? 'bg-status-success-bg text-status-success hover:bg-green-200'
+                                : 'bg-status-error-bg text-status-error hover:bg-red-200'
                             }`}
+                            title={`Click to change to ${member.status === 'active' ? 'inactive' : 'active'}`}
                           >
                             {member.status}
-                          </span>
+                          </button>
                         </td>
                         <td className="px-6 py-4 text-p4 text-neutral-600">
                           {new Date(member.joinDate).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-p4">
-                          <button
-                            onClick={() => handleDeleteStaff(member.id)}
-                            className="text-status-error hover:underline"
-                          >
-                            Delete
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingStaff(member)}
+                              className="text-primary-600 hover:underline font-semibold"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteStaff(member.id)}
+                              className="text-status-error hover:underline font-semibold"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
