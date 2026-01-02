@@ -15,10 +15,9 @@ export default function MemberDashboard() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      <div className="flex">
-        <Sidebar items={sidebarItems} />
-        <main className="flex-1 p-6 md:ml-64">
-          <div className="max-w-6xl mx-auto">
+      <Sidebar items={sidebarItems} />
+      <main className="p-6 md:ml-64">
+        <div className="max-w-6xl mx-auto">
             <h1 className="text-h2 text-neutral-900 mb-8">Welcome to Your Library</h1>
 
             {/* Stats Grid */}
@@ -79,7 +78,6 @@ export default function MemberDashboard() {
             </div>
           </div>
         </main>
-      </div>
     </div>
   );
 }

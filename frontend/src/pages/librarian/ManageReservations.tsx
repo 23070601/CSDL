@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import { apiClient } from '@/utils/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface Reservation {
   ReservationID?: string;
@@ -15,18 +16,29 @@ interface Reservation {
 }
 
 export default function ManageReservations() {
+  const { user } = useAuthStore();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Active' | 'Fulfilled' | 'Cancelled'>('Active');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newReservation, setNewReservation] = useState({
+    bookId: '',
+    memberId: ''
+  });
 
+  const basePath = user?.role === 'assistant' ? '/assistant' : '/librarian';
   const sidebarItems = [
-    { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
-    { label: 'Manage Circulation', path: '/librarian/circulation', icon: '📖' },
-    { label: 'Manage Reservations', path: '/librarian/reservations', icon: '📋' },
-    { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
-    { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
-    { label: 'Reports', path: '/librarian/reports', icon: '📈' },
+    { label: 'Dashboard', path: `${basePath}/dashboard`, icon: '📊' },
+    { label: 'Manage Circulation', path: `${basePath}/circulation`, icon: '📖' },
+    { label: 'Manage Reservations', path: `${basePath}/reservations`, icon: '📋' },
+    ...(user?.role === 'assistant'
+      ? []
+      : [
+          { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
+          { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
+          { label: 'Reports', path: '/librarian/reports', icon: '📈' },
+        ]),
   ];
 
   useEffect(() => {
@@ -74,6 +86,27 @@ export default function ManageReservations() {
     }
   };
 
+    const handleCreateReservation = async () => {
+      if (!newReservation.bookId || !newReservation.memberId) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        await apiClient.createReservation({
+          bookId: parseInt(newReservation.bookId),
+          memberId: newReservation.memberId
+        });
+        alert('Reservation created successfully!');
+        setShowAddModal(false);
+        setNewReservation({ bookId: '', memberId: '' });
+        await fetchReservations();
+      } catch (error: any) {
+        console.error('Error creating reservation:', error);
+        alert(error.response?.data?.message || 'Failed to create reservation');
+      }
+    };
+
   const filteredReservations = reservations.filter(r => {
     const matchesSearch = 
       (r.Title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,6 +144,15 @@ export default function ManageReservations() {
           <div className="max-w-6xl mx-auto">
             <h1 className="text-h2 text-neutral-900 mb-8">Manage Reservations</h1>
             
+              <div className="mb-6">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold"
+                >
+                  + Add New Reservation
+                </button>
+              </div>
+
             <div className="card mb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
@@ -235,6 +277,60 @@ export default function ManageReservations() {
                 <li>• Active reservations are shown by default</li>
               </ul>
             </div>
+
+              {/* Add Reservation Modal */}
+              {showAddModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h2 className="text-xl font-bold text-neutral-900 mb-4">Create New Reservation</h2>
+                  
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Book ID *
+                        </label>
+                        <input
+                          type="number"
+                          value={newReservation.bookId}
+                          onChange={(e) => setNewReservation({ ...newReservation, bookId: e.target.value })}
+                          placeholder="Enter book ID"
+                          className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Member ID *
+                        </label>
+                        <input
+                          type="text"
+                          value={newReservation.memberId}
+                          onChange={(e) => setNewReservation({ ...newReservation, memberId: e.target.value })}
+                          placeholder="Enter member ID"
+                          className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleCreateReservation}
+                        className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold"
+                      >
+                        Create Reservation
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowAddModal(false);
+                          setNewReservation({ bookId: '', memberId: '' });
+                        }}
+                        className="flex-1 px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 font-semibold"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         </main>
       </div>

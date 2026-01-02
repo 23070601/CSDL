@@ -8,10 +8,11 @@ export default function MyProfile() {
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/member/dashboard', icon: '📊' },
-    { label: 'Search Books', path: '/member/search', icon: '🔍' },
-    { label: 'My Loans', path: '/member/loans', icon: '📚' },
-    { label: 'My Fines', path: '/member/fines', icon: '💰' },
+    { label: 'Search Books', path: '/member/books', icon: '�' },
+    { label: 'My Profile', path: '/member/profile', icon: '👤' },
+    { label: 'My Loans', path: '/member/loans', icon: '📖' },
     { label: 'My Reservations', path: '/member/reservations', icon: '📋' },
+    { label: 'My Fines', path: '/member/fines', icon: '💳' },
     { label: 'Notifications', path: '/member/notifications', icon: '🔔' },
   ];
 
@@ -34,15 +35,13 @@ export default function MyProfile() {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navbar />
-      <div className="flex">
-        <Sidebar items={sidebarItems} />
-        <main className="flex-1 p-6 md:ml-64">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-h2 text-neutral-900 mb-8">My Profile</h1>
-            <ProfileForm onSave={handleSaveProfile} isLoading={isLoading} />
-          </div>
-        </main>
-      </div>
+      <Sidebar items={sidebarItems} />
+      <main className="p-6 md:ml-64">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-h2 text-neutral-900 mb-8">My Profile</h1>
+          <ProfileForm onSave={handleSaveProfile} isLoading={isLoading} />
+        </div>
+      </main>
     </div>
   );
 }

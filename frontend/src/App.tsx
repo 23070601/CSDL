@@ -25,6 +25,12 @@ import LibrarianReports from '@/pages/librarian/Reports';
 import ManageReservations from '@/pages/librarian/ManageReservations';
 import ManageFines from '@/pages/librarian/ManageFines';
 
+// Assistant pages (reuse librarian components)
+import AssistantDashboard from '@/pages/librarian/Dashboard';
+import AssistantProfile from '@/pages/librarian/Profile';
+import AssistantCirculation from '@/pages/librarian/ManageCirculation';
+import AssistantReservations from '@/pages/librarian/ManageReservations';
+
 // Member pages
 import MemberDashboard from '@/pages/member/Dashboard';
 import SearchBooks from '@/pages/member/SearchBooks';
@@ -124,6 +130,24 @@ function App() {
           element={
             <ProtectedRoute role="librarian" element={<ManageFines />} />
           }
+        />
+
+        {/* Assistant routes */}
+        <Route
+          path="/assistant/dashboard"
+          element={<ProtectedRoute role="assistant" element={<AssistantDashboard />} />}
+        />
+        <Route
+          path="/assistant/profile"
+          element={<ProtectedRoute role="assistant" element={<AssistantProfile />} />}
+        />
+        <Route
+          path="/assistant/circulation"
+          element={<ProtectedRoute role="assistant" element={<AssistantCirculation />} />}
+        />
+        <Route
+          path="/assistant/reservations"
+          element={<ProtectedRoute role="assistant" element={<AssistantReservations />} />}
         />
 
         {/* Member routes */}

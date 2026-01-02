@@ -25,6 +25,13 @@ export default function ManageFines() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'unpaid' | 'paid'>('all');
   const [payingFine, setPayingFine] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newFine, setNewFine] = useState({
+    loanId: '',
+    memberId: '',
+    amount: '',
+    reason: ''
+  });
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
@@ -51,6 +58,29 @@ export default function ManageFines() {
     }
   };
 
+    const handleCreateFine = async () => {
+      if (!newFine.memberId || !newFine.amount) {
+        alert('Member ID and Amount are required');
+        return;
+      }
+
+      try {
+        await apiClient.createFine({
+          loanId: newFine.loanId || null,
+          memberId: newFine.memberId,
+          amount: parseFloat(newFine.amount),
+          reason: newFine.reason || 'Manual fine'
+        });
+        alert('Fine created successfully!');
+        setShowAddModal(false);
+        setNewFine({ loanId: '', memberId: '', amount: '', reason: '' });
+        await fetchFines();
+      } catch (error: any) {
+        console.error('Error creating fine:', error);
+        alert(error.response?.data?.message || 'Failed to create fine');
+      }
+    };
+
   const filteredFines = fines.filter(f => {
     const matchesSearch = 
       (f.MemberName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,13 +106,14 @@ export default function ManageFines() {
     }
   };
 
-  const totalUnpaid = filteredFines
+  // Compute totals using all fines (not just the filtered view) so summary cards remain accurate
+  const totalUnpaid = fines
     .filter(f => f.Status?.toLowerCase() === 'unpaid')
-    .reduce((sum, f) => sum + parseFloat((f.Amount || 0).toString()), 0);
+    .reduce((sum, f) => sum + Number(f.Amount || 0), 0);
 
-  const totalPaid = filteredFines
+  const totalPaid = fines
     .filter(f => f.Status?.toLowerCase() === 'paid')
-    .reduce((sum, f) => sum + parseFloat((f.Amount || 0).toString()), 0);
+    .reduce((sum, f) => sum + Number(f.Amount || 0), 0);
 
   if (loading) {
     return (
@@ -110,6 +141,15 @@ export default function ManageFines() {
           <div className="max-w-7xl mx-auto">
             <h1 className="text-h2 text-neutral-900 mb-8">Manage Fines</h1>
             
+              <div className="mb-6">
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold"
+                >
+                  + Add New Fine
+                </button>
+              </div>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="card bg-gradient-to-br from-red-50 to-red-100">
@@ -253,6 +293,85 @@ export default function ManageFines() {
                 </table>
               </div>
             </div>
+
+              {/* Add Fine Modal */}
+              {showAddModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h2 className="text-xl font-bold text-neutral-900 mb-4">Create New Fine</h2>
+                  
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Member ID *
+                        </label>
+                        <input
+                          type="text"
+                          value={newFine.memberId}
+                          onChange={(e) => setNewFine({ ...newFine, memberId: e.target.value })}
+                          placeholder="Enter member ID (e.g., M001)"
+                          className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Loan ID (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={newFine.loanId}
+                          onChange={(e) => setNewFine({ ...newFine, loanId: e.target.value })}
+                          placeholder="Enter loan ID if applicable"
+                          className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Amount * ($)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={newFine.amount}
+                          onChange={(e) => setNewFine({ ...newFine, amount: e.target.value })}
+                          placeholder="0.00"
+                          className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">
+                          Reason
+                        </label>
+                        <input
+                          type="text"
+                          value={newFine.reason}
+                          onChange={(e) => setNewFine({ ...newFine, reason: e.target.value })}
+                          placeholder="e.g., Lost book, Damaged book, Late return"
+                          className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleCreateFine}
+                        className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-semibold"
+                      >
+                        Create Fine
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowAddModal(false);
+                          setNewFine({ loanId: '', memberId: '', amount: '', reason: '' });
+                        }}
+                        className="flex-1 px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 font-semibold"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         </main>
       </div>

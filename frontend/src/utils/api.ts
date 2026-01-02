@@ -133,6 +133,10 @@ class ApiClient {
     return this.client.get('/api/fines', { params });
   }
 
+    public createFine(data: Record<string, any>) {
+      return this.client.post('/api/fines', data);
+    }
+
   public payFine(id: string, data: Record<string, any>) {
     return this.client.post(`/api/fines/${id}/pay`, data);
   }

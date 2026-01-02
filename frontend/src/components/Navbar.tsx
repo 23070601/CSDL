@@ -79,14 +79,14 @@ export default function Navbar() {
   const dashboardLink = {
     admin: '/admin/dashboard',
     librarian: '/librarian/dashboard',
-    assistant: '/librarian/dashboard',
+    assistant: '/assistant/dashboard',
     member: '/member/dashboard',
   }[user.role] || '/';
 
   const profileLink = {
     admin: '/admin/profile',
     librarian: '/librarian/profile',
-    assistant: '/librarian/profile',
+    assistant: '/assistant/profile',
     member: '/member/profile',
   }[user.role] || '/';
 

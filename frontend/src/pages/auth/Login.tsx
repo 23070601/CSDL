@@ -64,7 +64,7 @@ export default function Login() {
       const dashboardPaths = {
         admin: '/admin/dashboard',
         librarian: '/librarian/dashboard',
-        assistant: '/librarian/dashboard',
+        assistant: '/assistant/dashboard',
         member: '/member/dashboard',
       };
       

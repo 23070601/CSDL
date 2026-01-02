@@ -5,6 +5,7 @@ import Button from '@/components/Button';
 import Input from '@/components/Input';
 import Select from '@/components/Select';
 import { apiClient } from '@/utils/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface Loan {
   loanID?: string;
@@ -28,6 +29,7 @@ interface Loan {
 }
 
 export default function ManageCirculation() {
+  const { user } = useAuthStore();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [books, setBooks] = useState<any[]>([]);
@@ -79,13 +81,18 @@ export default function ManageCirculation() {
   const [loanSearchQuery, setLoanSearchQuery] = useState('');
   const [showLoanSuggestions, setShowLoanSuggestions] = useState(false);
 
+  const basePath = user?.role === 'assistant' ? '/assistant' : '/librarian';
   const sidebarItems = [
-    { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
-    { label: 'Manage Circulation', path: '/librarian/circulation', icon: '📖' },
-    { label: 'Manage Reservations', path: '/librarian/reservations', icon: '📋' },
-    { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
-    { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
-    { label: 'Reports', path: '/librarian/reports', icon: '📈' },
+    { label: 'Dashboard', path: `${basePath}/dashboard`, icon: '📊' },
+    { label: 'Manage Circulation', path: `${basePath}/circulation`, icon: '📖' },
+    { label: 'Manage Reservations', path: `${basePath}/reservations`, icon: '📋' },
+    ...(user?.role === 'assistant'
+      ? []
+      : [
+          { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
+          { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
+          { label: 'Reports', path: '/librarian/reports', icon: '📈' },
+        ]),
   ];
 
   useEffect(() => {

@@ -114,3 +114,84 @@ async function cancelReservation(req, res) {
 }
 
 module.exports = { listActiveReservations, fulfillReservation, cancelReservation };
+
+async function createReservation(req, res) {
+  const { bookId, memberId } = req.body;
+  
+  if (!bookId || !memberId) {
+    return res.status(400).json({ message: 'BookID and MemberID are required' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // Check if member exists
+    const [members] = await conn.execute(
+      'SELECT MemberID FROM MEMBER WHERE MemberID = ?',
+      [memberId]
+    );
+    if (!members.length) {
+      await conn.rollback();
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    // Check if book exists
+    const [books] = await conn.execute(
+      'SELECT BookID FROM BOOK WHERE BookID = ?',
+      [bookId]
+    );
+    if (!books.length) {
+      await conn.rollback();
+      return res.status(404).json({ message: 'Book not found' });
+    }
+
+    // Check if member already has an active reservation for this book
+    const [existing] = await conn.execute(
+      'SELECT ReservationID FROM RESERVATION WHERE BookID = ? AND MemberID = ? AND Status = ?',
+      [bookId, memberId, 'Active']
+    );
+    if (existing.length) {
+      await conn.rollback();
+      return res.status(400).json({ message: 'Member already has an active reservation for this book' });
+    }
+
+    // Get the next position in queue for this book
+    const [queue] = await conn.execute(
+      'SELECT MAX(PositionInQueue) AS MaxPosition FROM RESERVATION WHERE BookID = ? AND Status = ?',
+      [bookId, 'Active']
+    );
+    const nextPosition = (queue[0].MaxPosition || 0) + 1;
+
+    // Generate reservation ID
+    const reservationId = `R${Date.now()}`;
+
+    // Create the reservation
+    await conn.execute(
+      `INSERT INTO RESERVATION (ReservationID, BookID, MemberID, ReserveDate, PositionInQueue, Status, ExpireDate)
+       VALUES (?, ?, ?, CURRENT_DATE, ?, ?, DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY))`,
+      [reservationId, bookId, memberId, nextPosition, 'Active']
+    );
+
+    const logId = generateLogId();
+    await conn.execute(
+      'INSERT INTO AUDITLOG (LogID, StaffID, Action, TableName, RecordID, Timestamp, Details) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)',
+      [logId, req.user?.id || 'ST001', 'CREATE', 'Reservation', reservationId, `Created reservation for Book ${bookId}, Member ${memberId}`]
+    );
+
+    await conn.commit();
+    res.status(201).json({ 
+      message: 'Reservation created successfully',
+      ReservationID: reservationId,
+      PositionInQueue: nextPosition
+    });
+  } catch (err) {
+    await conn.rollback();
+    console.error('createReservation error:', err);
+    res.status(500).json({ message: 'Failed to create reservation', error: err.message });
+  } finally {
+    conn.release();
+  }
+}
+
+module.exports = { listActiveReservations, fulfillReservation, cancelReservation, createReservation };

@@ -27,6 +27,20 @@ export default function LibrarianDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
+  const basePath = user?.role === 'assistant' ? '/assistant' : '/librarian';
+  const sidebarItems = [
+    { label: 'Dashboard', path: `${basePath}/dashboard`, icon: '📊' },
+    { label: 'Manage Circulation', path: `${basePath}/circulation`, icon: '📖' },
+    { label: 'Manage Reservations', path: `${basePath}/reservations`, icon: '📋' },
+    ...(user?.role === 'assistant'
+      ? []
+      : [
+          { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
+          { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
+          { label: 'Reports', path: '/librarian/reports', icon: '📈' },
+        ]),
+  ];
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -38,12 +52,12 @@ export default function LibrarianDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [loansRes, reservationsRes, finesRes, membersRes] = await Promise.all([
+      const [loansRes, reservationsRes, membersRes] = await Promise.all([
         apiClient.getLoans(),
         apiClient.getReservations(),
-        apiClient.getFines(),
         apiClient.getMembers(),
       ]);
+      const finesRes = user?.role === 'assistant' ? { data: [] } : await apiClient.getFines();
 
       const loans = loansRes.data || [];
       const reservations = reservationsRes.data || [];
@@ -150,15 +164,6 @@ export default function LibrarianDashboard() {
       setLoading(false);
     }
   };
-
-  const sidebarItems = [
-    { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
-    { label: 'Manage Circulation', path: '/librarian/circulation', icon: '📖' },
-    { label: 'Manage Reservations', path: '/librarian/reservations', icon: '📋' },
-    { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
-    { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
-    { label: 'Reports', path: '/librarian/reports', icon: '📈' },
-  ];
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
