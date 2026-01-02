@@ -32,6 +32,7 @@ export default function ManagePurchaseOrders() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'approved' | 'completed' | 'cancelled'>('all');
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
   const [isAddingNewSupplier, setIsAddingNewSupplier] = useState(false);
@@ -95,7 +96,11 @@ export default function ManagePurchaseOrders() {
     { label: 'System Config', path: '/admin/config', icon: '⚙️' },
   ];
 
-  const filtered = orders.filter(o => (o.supplier || o.SupplierName || '').toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = orders.filter(o => {
+    const matchesSearch = (o.supplier || o.SupplierName || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || (o.Status || o.status || '').toLowerCase() === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleAddOrder = async () => {
     if (editingOrder) {
@@ -302,23 +307,43 @@ export default function ManagePurchaseOrders() {
               </div>
             )}
 
-            <div className="card mb-6 p-4 flex justify-between items-center">
-              <Input 
-                label="" 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-                placeholder="Search orders..." 
-              />
-              <Button 
-                onClick={() => {
-                  setIsAddingOrder(true);
-                  setEditingOrder({ Status: 'pending', OrderDate: new Date().toISOString().split('T')[0] });
-                }} 
-                variant="primary"
-              >
-                + Add Purchase Order
-              </Button>
+            <div className="card mb-6 p-4 space-y-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <Input 
+                    label="" 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    placeholder="Search orders..." 
+                  />
+                </div>
+                <Button 
+                  onClick={() => {
+                    setIsAddingOrder(true);
+                    setEditingOrder({ Status: 'pending', OrderDate: new Date().toISOString().split('T')[0] });
+                  }} 
+                  variant="primary"
+                >
+                  + Add Purchase Order
+                </Button>
+              </div>
+              <div>
+                <label className="block text-p5 font-semibold text-neutral-900 mb-2">Filter by Status</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'processing' | 'approved' | 'completed' | 'cancelled')}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-p4"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
             </div>
+
             <div className="card overflow-x-auto">
               <table className="w-full">
                 <thead>

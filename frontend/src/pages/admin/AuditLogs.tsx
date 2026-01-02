@@ -22,6 +22,8 @@ export default function AuditLogs() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [tableFilter, setTableFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
   const sidebarItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
@@ -51,10 +53,39 @@ export default function AuditLogs() {
     }
   };
 
-  const filtered = logs.filter(l =>
-    (l.user_id || l.user || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (l.Action || l.action || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = logs.filter(l => {
+    const matchesSearch = 
+      (l.user_id || l.user || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (l.Action || l.action || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    // Apply table filter
+    if (tableFilter !== 'all' && (l.TableName || '').toLowerCase() !== tableFilter.toLowerCase()) {
+      return false;
+    }
+    
+    // Apply date filter
+    const logDate = new Date(l.Timestamp || l.timestamp || '');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (dateFilter) {
+      case 'today':
+        return logDate >= today;
+      case 'week':
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return logDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        return logDate >= monthAgo;
+      default:
+        return true;
+    }
+  });
+
+  // Get unique table names for filter dropdown
+  const uniqueTables = ['all', ...new Set(logs.map(l => l.TableName || '').filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -63,13 +94,42 @@ export default function AuditLogs() {
       <main className="md:ml-64 p-6">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-h2 text-neutral-900 mb-8">Audit Logs</h1>
-          <div className="card mb-6">
+          <div className="card mb-6 space-y-4">
             <Input 
               label="Search" 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               placeholder="Search by user or action..." 
             />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-p5 font-semibold text-neutral-900 mb-2">Filter by Table</label>
+                <select
+                  value={tableFilter}
+                  onChange={(e) => setTableFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-p4"
+                >
+                  {uniqueTables.map(table => (
+                    <option key={table} value={table}>
+                      {table === 'all' ? 'All Tables' : table}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-p5 font-semibold text-neutral-900 mb-2">Filter by Date</label>
+                <select
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value as 'all' | 'today' | 'week' | 'month')}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-p4"
+                >
+                  <option value="all">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">Past 7 Days</option>
+                  <option value="month">Past Month</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div className="card overflow-x-auto">
             <table className="w-full">

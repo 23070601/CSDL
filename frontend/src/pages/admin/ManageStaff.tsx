@@ -18,6 +18,8 @@ export default function ManageStaff() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'librarian' | 'assistant'>('all');
   const [isAddingStaff, setIsAddingStaff] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [generatedPassword, setGeneratedPassword] = useState('');
@@ -67,7 +69,9 @@ export default function ManageStaff() {
   const filteredStaff = staff.filter(
     s =>
       (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (s.email || '').toLowerCase().includes(searchTerm.toLowerCase()) && 
+      (statusFilter === 'all' || s.status === statusFilter) &&
+      (roleFilter === 'all' || s.role === roleFilter)
   );
 
   const handleAddStaff = async () => {
@@ -283,13 +287,40 @@ export default function ManageStaff() {
               </div>
             )}
 
-            <div className="card mb-6">
+            <div className="card mb-6 space-y-4">
               <Input
                 label="Search Staff"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by name or email..."
               />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-p5 font-semibold text-neutral-900 mb-2">Filter by Status</label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-p4"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-p5 font-semibold text-neutral-900 mb-2">Filter by Role</label>
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'librarian' | 'assistant')}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-p4"
+                  >
+                    <option value="all">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="librarian">Librarian</option>
+                    <option value="assistant">Assistant</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="card overflow-x-auto">

@@ -139,8 +139,8 @@ export default function Login() {
           <div className="mt-8 p-4 bg-status-info-bg border border-status-info rounded-lg">
             <p className="text-p5 text-status-info font-semibold mb-2">Demo Credentials:</p>
             <p className="text-p5 text-status-info">Admin: duchm@library.com / admin123</p>
-            <p className="text-p5 text-status-info">Librarian: minhtv@library.com / (password)</p>
-            <p className="text-p5 text-status-info">Assistant: lanlt@library.com / (password)</p>
+            <p className="text-p5 text-status-info">Librarian: minhtv@library.com / librarian123</p>
+            <p className="text-p5 text-status-info">Assistant: lanlt@library.com / assistant123</p>
           </div>
         </div>
       </div>

@@ -28,6 +28,7 @@ export default function ManageBooks() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'limited' | 'none'>('all');
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [newBook, setNewBook] = useState({
@@ -92,12 +93,29 @@ export default function ManageBooks() {
     { label: 'System Config', path: '/admin/config', icon: '⚙️' },
   ];
 
-  const filteredBooks = books.filter(
-    b =>
+  const filteredBooks = books.filter(b => {
+    const matchesSearch = 
       (b.title || b.Title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.author || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (b.isbn || b.ISBN || '').includes(searchTerm)
-  );
+      (b.isbn || b.ISBN || '').includes(searchTerm);
+    
+    if (!matchesSearch) return false;
+    
+    // Apply availability filter
+    const available = b.AvailableCopies ?? b.availableCopies ?? 0;
+    const total = b.TotalCopies ?? b.totalCopies ?? 0;
+    
+    switch (availabilityFilter) {
+      case 'available':
+        return available > 0;
+      case 'limited':
+        return available > 0 && available < (total * 0.3);
+      case 'none':
+        return available === 0;
+      default:
+        return true;
+    }
+  });
 
   const handleAddBook = async () => {
     if (newBook.title && newBook.isbn) {
@@ -296,13 +314,26 @@ export default function ManageBooks() {
               </div>
             )}
 
-            <div className="card mb-6">
+            <div className="card mb-6 space-y-4">
               <Input
                 label="Search Books"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by title, author, or ISBN..."
               />
+              <div>
+                <label className="block text-p5 font-semibold text-neutral-900 mb-2">Filter by Availability</label>
+                <select
+                  value={availabilityFilter}
+                  onChange={(e) => setAvailabilityFilter(e.target.value as 'all' | 'available' | 'limited' | 'none')}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-p4"
+                >
+                  <option value="all">All Books</option>
+                  <option value="available">Available</option>
+                  <option value="limited">Limited Stock</option>
+                  <option value="none">Out of Stock</option>
+                </select>
+              </div>
             </div>
 
             <div className="card overflow-x-auto">
