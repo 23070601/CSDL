@@ -35,7 +35,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-neutral-100 -mx-4 px-4 md:py-32">
+      <section className="py-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 -mx-4 px-4 md:py-32">
         <div className="container-main">
           <h2 className="text-h2 text-neutral-900 text-center mb-16">Key Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

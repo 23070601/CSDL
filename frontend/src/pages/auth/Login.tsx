@@ -82,7 +82,7 @@ export default function Login() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-300 to-cyan-400">
         <div className="w-full max-w-md">
           <div className="card">
             <h1 className="text-h3 text-neutral-900 mb-2 text-center">Welcome</h1>
