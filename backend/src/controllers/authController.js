@@ -99,8 +99,9 @@ async function registerMember(req, res) {
 
     res.status(201).json({ token, user: { id: memberId, name: fullName, email, role: 'Member' } });
   } catch (err) {
-    console.error('Register error', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Register error:', err.message, err.code, err.sqlMessage);
+    console.error('Full error:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 }
 

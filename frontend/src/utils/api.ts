@@ -96,7 +96,7 @@ class ApiClient {
   }
 
   public borrowBook(data: Record<string, any>) {
-    return this.client.post('/api/loans/borrow', data);
+    return this.client.post('/api/loans', data);
   }
 
   public returnBook(id: string) {

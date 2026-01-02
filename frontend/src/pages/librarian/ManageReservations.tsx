@@ -5,7 +5,9 @@ export default function ManageReservations() {
   const sidebarItems = [
     { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
     { label: 'Manage Circulation', path: '/librarian/circulation', icon: '📖' },
+    { label: 'Manage Reservations', path: '/librarian/reservations', icon: '📋' },
     { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
+    { label: 'Manage Fines', path: '/librarian/fines', icon: '💳' },
     { label: 'Reports', path: '/librarian/reports', icon: '📈' },
   ];
 
