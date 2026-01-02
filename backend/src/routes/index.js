@@ -1,0 +1,38 @@
+const express = require('express');
+const health = require('./health');
+const auth = require('./auth');
+const password = require('./password');
+const books = require('./books');
+const members = require('./members');
+const staff = require('./staff');
+const suppliers = require('./suppliers');
+const purchaseOrders = require('./purchaseOrders');
+const loans = require('./loans');
+const reservations = require('./reservations');
+const fines = require('./fines');
+const reports = require('./reports');
+const lost = require('./lost');
+const config = require('./config');
+const exportsCsv = require('./exports');
+const notifications = require('./notifications');
+
+const router = express.Router();
+
+router.use(health);
+router.use(auth);
+router.use('/api/password', password);
+router.use(books);
+router.use(members);
+router.use(staff);
+router.use(suppliers);
+router.use(purchaseOrders);
+router.use(loans);
+router.use(reservations);
+router.use(fines);
+router.use(reports);
+router.use(lost);
+router.use(config);
+router.use(exportsCsv);
+router.use(notifications);
+
+module.exports = router;

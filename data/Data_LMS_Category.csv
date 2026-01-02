@@ -1,0 +1,11 @@
+CategoryID,CategoryName,Description
+CAT01,Information Technology,Books related to information technology and computing
+CAT02,Computer Science,Books on computer science fundamentals and programming
+CAT03,Data Science & Analytics,"Books on data mining, analytics, and statistics"
+CAT04,Database Systems,Books about database design and management
+CAT05,Artificial Intelligence,Books related to artificial intelligence and machine learning
+CAT06,Business & Management,Books on business management and information systems
+CAT07,Marketing & E-Commerce,"Books on marketing, digital marketing, and e-commerce"
+CAT08,Finance & Accounting,"Books on finance, accounting, and auditing"
+CAT09,Law & E-Business,Books related to business law and electronic commerce
+CAT10,Mathematics & Statistics,Books on mathematics and business statistics

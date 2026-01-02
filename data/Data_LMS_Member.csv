@@ -1,0 +1,21 @@
+MemberID,FullName,Email,Address,Phone,MemberType,JoinDate,Status
+MB230001,Nguyễn Văn An,annguyen@gmail.com,Hà Nội,385123401,Student,2025-01-15,Active
+MB230002,Trần Thị Bình,tranthibinh@gmail.com,TP. Hồ Chí Minh,796348205,Student,2025-02-10,Active
+MB230003,Lê Minh Cường,leminhcuong@gmail.com,Đà Nẵng,867459213,Student,2025-03-05,Active
+MB230004,Phạm Thu Dung,phamthudung@gmail.com,Hà Nội,918734620,Lecturer,2025-03-20,Active
+MB230005,Hoàng Văn Đức,hoangvanduc@gmail.com,Hải Phòng,704569821,Student,2025-04-12,Inactive
+MB230006,Vũ Thị Hạnh,vuthihanh@gmail.com,Nam Định,339845726,Student,2025-05-01,Active
+MB230007,Đỗ Quang Huy,doquanghuy@gmail.com,TP. Hồ Chí Minh,782154693,Student,2025-05-18,Active
+MB230008,Nguyễn Thị Lan,nguyenthilan@gmail.com,Hà Nội,897364512,Lecturer,2025-06-07,Active
+MB230009,Trần Minh Long,tranminhlong@gmail.com,Cần Thơ,965842371,Student,2025-06-25,Active
+MB230010,Lê Thị Mai,lethimai@gmail.com,Huế,321746985,Student,2025-07-10,Active
+MB230011,Phan Quốc Nam,phanquocnam@gmail.com,Bình Dương,815639204,Student,2025-07-28,Active
+MB230012,Nguyễn Hoàng Phúc,nguyenhoangphuc@gmail.com,TP. Hồ Chí Minh,974283651,Student,2025-08-15,Active
+MB230013,Trịnh Thị Quỳnh,trinhthiquynh@gmail.com,Hà Nội,358624917,Lecturer,2025-09-01,Inactive
+MB230014,Bùi Văn Sơn,buivanson@gmail.com,Nghệ An,769452813,Lecturer,2025-09-20,Active
+MB230015,Đặng Thị Trang,dangthitrang@gmail.com,Quảng Ninh,852379640,Student,2025-10-05,Active
+MB230016,Võ Thanh Tùng,vothanhtung@gmail.com,Khánh Hòa,346185729,Student,2025-10-22,Active
+MB230017,Nguyễn Đức Thắng,nguyenducthang@gmail.com,Thanh Hóa,927546138,Student,2025-11-08,Active
+MB230018,Phạm Ngọc Anh,phamngocanh@gmail.com,Hà Nội,773918246,Student,2025-11-25,Active
+MB230019,Lương Thị Hồng,luongthihong@gmail.com,Bắc Ninh,884629751,Lecturer,2025-12-10,Active
+MB230020,Trần Quốc Bảo,tranquocbao@gmail.com,Long An,392857416,Student,2025-12-28,Active

@@ -1,0 +1,11 @@
+AuditLog_ID,StaffID,Action,TableName,RecordID,Timestamp,Details
+AL001,ST005,CREATE,PurchaseOrder,PO001,2024-01-05 09:15:00,Create a book order
+AL002,ST001,UPDATE,PurchaseOrder,PO002,2024-01-08 14:30:00,Update status
+AL003,ST002,CREATE,Loan,LD240003,2024-01-10 10:05:00,Create a loan
+AL004,ST005,UPDATE,Loan,LD240004,2024-01-12 16:40:00,Create a loan
+AL005,ST003,CREATE,FinePayment,FP001,2024-02-01 11:20:00,Record payment
+AL006,ST001,UPDATE,Member,MB230005,2024-02-05 08:55:00,Update members
+AL007,ST005,DELETE,Reservation,RS260703,2024-02-10 15:10:00,Cancel reservation
+AL008,ST002,LOGIN,System,-,2024-02-15 08:00:00,Log in to the system
+AL009,ST001,LOGOUT,System,-,2024-02-15 17:00:00,Log out to the system
+AL010,ST005,UPDATE,LostReport,LR002,2024-02-18 13:45:00,Update the lost

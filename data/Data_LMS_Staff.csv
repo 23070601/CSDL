@@ -1,0 +1,6 @@
+StaffID,FullName,Email,Role,PasswordHash,ActiveFlag
+ST001,Nguyễn Thị Hồng,hongnt@library.com,Librarian,HASH_ST001,1
+ST002,Trần Văn Minh,minhtv@library.com,Librarian,HASH_ST002,1
+ST003,Lê Thị Lan,lanlt@library.com,Assistant,HASH_ST003,1
+ST004,Đặng Thị Mai,maidt@library.com,Librarian,HASH_ST004,0
+ST005,Hoàng Minh Đức,duchm@library.com,Admin,HASH_ST005,1
