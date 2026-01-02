@@ -54,7 +54,15 @@ async function login(req, res) {
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    return res.json({ token, user });
+    // Return sanitized user object without sensitive data
+    const sanitizedUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: role // Use the role parameter (Admin/Librarian/Assistant/Member), not MemberType
+    };
+
+    return res.json({ token, user: sanitizedUser });
   } catch (err) {
     console.error('Login error', err);
     return res.status(500).json({ message: 'Server error' });
@@ -99,9 +107,8 @@ async function registerMember(req, res) {
 
     res.status(201).json({ token, user: { id: memberId, name: fullName, email, role: 'Member' } });
   } catch (err) {
-    console.error('Register error:', err.message, err.code, err.sqlMessage);
-    console.error('Full error:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Register error:', err.message);
+    res.status(500).json({ message: 'Server error' });
   }
 }
 

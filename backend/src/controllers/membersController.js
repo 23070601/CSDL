@@ -20,7 +20,7 @@ async function getMember(req, res) {
 
 async function updateMember(req, res) {
   const { id } = req.params;
-  const { fullName, email, phoneNumber, address, dateOfBirth, gender, linkedIn, facebook } = req.body;
+  const { fullName, email, phoneNumber, phone, address, memberType, status } = req.body;
 
   try {
     const [result] = await pool.execute(
@@ -28,9 +28,11 @@ async function updateMember(req, res) {
        SET FullName = COALESCE(?, FullName),
            Email = COALESCE(?, Email),
            Phone = COALESCE(?, Phone),
-           Address = COALESCE(?, Address)
+           Address = COALESCE(?, Address),
+           MemberType = COALESCE(?, MemberType),
+           Status = COALESCE(?, Status)
        WHERE MemberID = ?`,
-      [fullName || null, email || null, phoneNumber || null, address || null, id]
+      [fullName || null, email || null, phoneNumber || phone || null, address || null, memberType || null, status || null, id]
     );
 
     if (result.affectedRows === 0) {
@@ -48,4 +50,32 @@ async function updateMember(req, res) {
   }
 }
 
-module.exports = { listMembers, getMember, updateMember };
+async function deleteMember(req, res) {
+  const { id } = req.params;
+
+  try {
+    // Check for active loans
+    const [loans] = await pool.execute(
+      'SELECT COUNT(*) as count FROM LOAN WHERE MemberID = ? AND ReturnDate IS NULL',
+      [id]
+    );
+
+    if (loans[0].count > 0) {
+      return res.status(400).json({ 
+        message: 'Cannot delete member with active loans. Please return all books first.' 
+      });
+    }
+
+    const [result] = await pool.execute('DELETE FROM MEMBER WHERE MemberID = ?', [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Member not found' });
+    }
+
+    res.json({ message: 'Member deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting member', error: error.message });
+  }
+}
+
+module.exports = { listMembers, getMember, updateMember, deleteMember };

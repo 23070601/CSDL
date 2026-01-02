@@ -7,24 +7,15 @@ import Select from '@/components/Select';
 import { apiClient } from '@/utils/api';
 
 interface Fine {
-  fineID?: string;
-  FineID?: string;
-  loanID?: string;
+  PaymentID?: string;
   LoanID?: string;
-  memberID?: string;
   MemberID?: string;
-  memberName?: string;
   MemberName?: string;
-  bookTitle?: string;
   BookTitle?: string;
-  amount?: number;
   Amount?: number;
-  status?: string;
   Status?: string;
-  issueDate?: string;
-  IssueDate?: string;
-  paidDate?: string;
-  PaidDate?: string;
+  PaymentDate?: string;
+  Method?: string;
 }
 
 export default function ManageFines() {
@@ -62,13 +53,13 @@ export default function ManageFines() {
 
   const filteredFines = fines.filter(f => {
     const matchesSearch = 
-      (f.memberName || f.MemberName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (f.bookTitle || f.BookTitle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (f.fineID || f.FineID || '').toString().includes(searchTerm);
+      (f.MemberName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (f.BookTitle || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (f.PaymentID || '').toString().includes(searchTerm);
     
     if (!matchesSearch) return false;
 
-    const status = (f.status || f.Status || '').toLowerCase();
+    const status = (f.Status || '').toLowerCase();
     if (statusFilter === 'all') return true;
     return status === statusFilter;
   });
@@ -86,12 +77,12 @@ export default function ManageFines() {
   };
 
   const totalUnpaid = filteredFines
-    .filter(f => (f.status || f.Status)?.toLowerCase() === 'unpaid')
-    .reduce((sum, f) => sum + parseFloat((f.amount || f.Amount || 0).toString()), 0);
+    .filter(f => f.Status?.toLowerCase() === 'unpaid')
+    .reduce((sum, f) => sum + parseFloat((f.Amount || 0).toString()), 0);
 
   const totalPaid = filteredFines
-    .filter(f => (f.status || f.Status)?.toLowerCase() === 'paid')
-    .reduce((sum, f) => sum + parseFloat((f.amount || f.Amount || 0).toString()), 0);
+    .filter(f => f.Status?.toLowerCase() === 'paid')
+    .reduce((sum, f) => sum + parseFloat((f.Amount || 0).toString()), 0);
 
   if (loading) {
     return (
@@ -192,26 +183,31 @@ export default function ManageFines() {
                       </tr>
                     ) : (
                       filteredFines.map((fine) => (
-                        <tr key={fine.fineID || fine.FineID} className="border-b border-neutral-200 hover:bg-neutral-50">
-                          <td className="py-3 px-4">{fine.fineID || fine.FineID}</td>
-                          <td className="py-3 px-4">{fine.memberName || fine.MemberName || 'Unknown'}</td>
-                          <td className="py-3 px-4">{fine.bookTitle || fine.BookTitle || 'Unknown'}</td>
-                          <td className="py-3 px-4 font-semibold">${parseFloat((fine.amount || fine.Amount || 0).toString()).toFixed(2)}</td>
+                        <tr key={fine.PaymentID} className="border-b border-neutral-200 hover:bg-neutral-50">
+                          <td className="py-3 px-4">{fine.PaymentID}</td>
                           <td className="py-3 px-4">
-                            {new Date(fine.issueDate || fine.IssueDate || '').toLocaleDateString()}
+                            <div>
+                              <div className="font-medium">{fine.MemberName || 'Unknown'}</div>
+                              <div className="text-sm text-neutral-500">{fine.MemberID}</div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">{fine.BookTitle || 'Unknown'}</td>
+                          <td className="py-3 px-4 font-semibold">${parseFloat((fine.Amount || 0).toString()).toFixed(2)}</td>
+                          <td className="py-3 px-4">
+                            {new Date(fine.PaymentDate || '').toLocaleDateString()}
                           </td>
                           <td className="py-3 px-4">
                             <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                              (fine.status || fine.Status)?.toLowerCase() === 'paid'
+                              fine.Status?.toLowerCase() === 'paid'
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-red-100 text-red-800'
                             }`}>
-                              {fine.status || fine.Status}
+                              {fine.Status}
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            {(fine.status || fine.Status)?.toLowerCase() === 'unpaid' && (
-                              payingFine === (fine.fineID || fine.FineID) ? (
+                            {fine.Status?.toLowerCase() === 'unpaid' && (
+                              payingFine === fine.PaymentID ? (
                                 <div className="flex gap-2 items-center">
                                   <Input
                                     type="number"
@@ -222,7 +218,7 @@ export default function ManageFines() {
                                   />
                                   <Button
                                     size="sm"
-                                    onClick={() => handlePayFine(fine.fineID || fine.FineID || '', parseFloat(paymentAmount))}
+                                    onClick={() => handlePayFine(fine.PaymentID || '', parseFloat(paymentAmount))}
                                   >
                                     Pay
                                   </Button>
@@ -241,8 +237,8 @@ export default function ManageFines() {
                                 <Button
                                   size="sm"
                                   onClick={() => {
-                                    setPayingFine(fine.fineID || fine.FineID || '');
-                                    setPaymentAmount((fine.amount || fine.Amount || 0).toString());
+                                    setPayingFine(fine.PaymentID || '');
+                                    setPaymentAmount((fine.Amount || 0).toString());
                                   }}
                                 >
                                   Pay Fine

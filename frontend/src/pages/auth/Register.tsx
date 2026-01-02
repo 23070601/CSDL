@@ -21,7 +21,7 @@ export default function Register() {
     email: '',
     password: '',
     confirmPassword: '',
-    memberType: 'Standard',
+    memberType: 'Student',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -131,9 +131,8 @@ export default function Register() {
                 value={formData.memberType}
                 onChange={handleChange}
                 options={[
-                  { value: 'Standard', label: 'Standard Member' },
-                  { value: 'Premium', label: 'Premium Member' },
                   { value: 'Student', label: 'Student' },
+                  { value: 'Lecturer', label: 'Lecturer' },
                 ]}
               />
               <Input

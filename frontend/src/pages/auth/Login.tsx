@@ -9,6 +9,7 @@ import { apiClient } from '@/utils/api';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'Admin' | 'Librarian' | 'Assistant' | 'Member'>('Member');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,8 +27,8 @@ export default function Login() {
         return;
       }
 
-      console.log('Attempting login with:', email);
-      const response = await apiClient.login(email, password);
+      console.log('Attempting login with:', email, 'as', role);
+      const response = await apiClient.loginWithRole(email, password, role);
       console.log('Login response:', response);
       
       // Extract user and token from response
@@ -43,7 +44,7 @@ export default function Login() {
       user = {
         id: user.id || user.StaffID || user.MemberID || '',
         email: user.email || user.Email || '',
-        fullName: user.fullName || user.Name || user.FullName || '',
+        fullName: user.name || user.fullName || user.Name || user.FullName || '',
         role: (user.role || user.Role || '').toLowerCase(),
         status: user.status || user.Status || 'active',
         createdAt: user.createdAt || user.CreatedAt || new Date().toISOString(),
@@ -96,6 +97,22 @@ export default function Login() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Login As
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="Member">Member</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Librarian">Librarian</option>
+                  <option value="Assistant">Assistant</option>
+                </select>
+              </div>
+
               <Input
                 type="email"
                 label="Email Address"

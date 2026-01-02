@@ -37,6 +37,10 @@ class ApiClient {
   }
 
   // Auth endpoints
+  public async loginWithRole(email: string, password: string, role: string) {
+    return await this.client.post('/api/auth/login', { email, password, role });
+  }
+
   public async login(email: string, password: string) {
     // Try to login with different roles
     const roles = ['Admin', 'Librarian', 'Assistant', 'Member'];
@@ -116,6 +120,10 @@ class ApiClient {
     return this.client.post('/api/reservations', data);
   }
 
+  public fulfillReservation(id: string) {
+    return this.client.post(`/api/reservations/${id}/fulfill`);
+  }
+
   public cancelReservation(id: string) {
     return this.client.delete(`/api/reservations/${id}`);
   }
@@ -140,6 +148,10 @@ class ApiClient {
 
   public updateMember(id: string, data: Record<string, any>) {
     return this.client.put(`/api/members/${id}`, data);
+  }
+
+  public deleteMember(id: string) {
+    return this.client.delete(`/api/members/${id}`);
   }
 
   // Staff endpoints
