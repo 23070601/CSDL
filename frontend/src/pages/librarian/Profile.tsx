@@ -1,19 +1,30 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import ProfileForm from '@/components/ProfileForm';
 
 export default function LibrarianProfile() {
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const isAssistant = location.pathname.startsWith('/assistant');
 
-  const sidebarItems = [
-    { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
-    { label: 'Manage Circulation', path: '/librarian/circulation', icon: '📚' },
-    { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
-    { label: 'Reservations', path: '/librarian/reservations', icon: '📋' },
-    { label: 'Manage Fines', path: '/librarian/fines', icon: '💰' },
-    { label: 'Reports', path: '/librarian/reports', icon: '📈' },
-  ];
+  const sidebarItems = isAssistant
+    ? [
+        { label: 'Dashboard', path: '/assistant/dashboard', icon: '📊' },
+        { label: 'Manage Circulation', path: '/assistant/circulation', icon: '📚' },
+        { label: 'Reservations', path: '/assistant/reservations', icon: '📋' },
+        { label: 'My Profile', path: '/assistant/profile', icon: '👤' },
+      ]
+    : [
+        { label: 'Dashboard', path: '/librarian/dashboard', icon: '📊' },
+        { label: 'Manage Circulation', path: '/librarian/circulation', icon: '📚' },
+        { label: 'Manage Members', path: '/librarian/members', icon: '👥' },
+        { label: 'Reservations', path: '/librarian/reservations', icon: '📋' },
+        { label: 'Manage Fines', path: '/librarian/fines', icon: '💰' },
+        { label: 'Reports', path: '/librarian/reports', icon: '📈' },
+        { label: 'My Profile', path: '/librarian/profile', icon: '👤' },
+      ];
 
   const handleSaveProfile = async (formData: any) => {
     setIsLoading(true);
@@ -38,7 +49,9 @@ export default function LibrarianProfile() {
         <Sidebar items={sidebarItems} />
         <main className="flex-1 p-6 md:ml-64">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-h2 text-neutral-900 mb-8">Librarian Profile</h1>
+            <h1 className="text-h2 text-neutral-900 mb-8">
+              {isAssistant ? 'Assistant Profile' : 'Librarian Profile'}
+            </h1>
             <ProfileForm onSave={handleSaveProfile} isLoading={isLoading} />
           </div>
         </main>
